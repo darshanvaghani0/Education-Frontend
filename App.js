@@ -6,16 +6,17 @@ import LoginPage from './src/app/features/auth/LoginPage';
 import ToastConfig from './src/app/features/toastConfig';
 import Toast from 'react-native-toast-message';
 import HomeScreen from './src/app/features/screen/HomeScreen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
-  const [initialRoute, setInitialRoute] = useState('Login');
+  const [initialRoute, setInitialRoute] = useState(null);
   const [isOldVersion, setIsOldVersion] = useState(false);
   const [downloadLink, setDownloadLink] = useState('');
 
   useEffect(() => {
-    // checkLoginStatus();
+    checkLoginStatus();
     // checkVersion();
   }, []);
 
@@ -32,33 +33,48 @@ export default function App() {
   //     })
   // }
 
-  // const checkLoginStatus = async () => {
-  //   const data = await AsyncStorage.getItem('loginData');
-  //   if (data) {
-  //     const { loginTime } = JSON.parse(data);
-  //     const currentTime = new Date();
-  //     const loginTimestamp = new Date(loginTime);
-
-  //     const hoursDifference = Math.abs(currentTime - loginTimestamp) / (1000 * 60 * 60);
-
-  //     if (hoursDifference > 24) {
-  //       await AsyncStorage.removeItem('loginData');
-  //       setInitialRoute('Login');
-  //       return false;
-  //     } else {
-  //       const selectedBranch = await AsyncStorage.getItem('selectedBranch')
-  //       if(selectedBranch){
-  //         setInitialRoute('Home');
-  //       }else{
-  //         setInitialRoute('BranchSelect');
-  //       }
-  //       return true;
-  //     }
-  //   } else {
-  //     setInitialRoute('Login');
-  //     return false;
-  //   }
-  // }
+  const checkLoginStatus = async () => {
+    try {
+      const data = await AsyncStorage.getItem('loginData');
+      console.log('called', data);
+  
+      if (!data) {
+        setInitialRoute('Login');
+        return false;
+      }
+  
+      const { loginTime } = JSON.parse(data);
+      if (!loginTime) {
+        setInitialRoute('Login');
+        return false;
+      }
+  
+      const currentTime = new Date();
+      const loginTimestamp = new Date(loginTime);
+  
+      if (isNaN(loginTimestamp.getTime())) {
+        console.error('Invalid login timestamp');
+        setInitialRoute('Login');
+        return false;
+      }
+  
+      const hoursDifference = (currentTime - loginTimestamp) / (1000 * 60 * 60);
+  
+      if (hoursDifference > 24) {
+        await AsyncStorage.removeItem('loginData');
+        setInitialRoute('Login');
+        return false;
+      }
+  
+      setInitialRoute('Home');
+      return true;
+    } catch (error) {
+      console.error('Error checking login status:', error);
+      setInitialRoute('Login');
+      return false;
+    }
+  };
+  
 
   if (initialRoute === null) {
     return (
