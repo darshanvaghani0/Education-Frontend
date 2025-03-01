@@ -1,8 +1,11 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions, BackHandler, Alert } from 'react-native';
+import { FlatList, View, Text, TouchableOpacity, StyleSheet, Image, Dimensions, BackHandler, Alert } from 'react-native';
 import CustomHeader from '../CustomHeader';
 import { get } from '../../../services/api';
+import { isTeacher } from '../auth/user_data';
+import ConfirmationModal from '../../Modal/ConfirmationModal';
+import Toast from 'react-native-toast-message';
 
 const { width } = Dimensions.get('window');
 
@@ -16,19 +19,18 @@ const Button = ({ onPress, text }) => (
 
 const HomeScreen = () => {
   const navigation = useNavigation();
-  
+
   // State to manage the current level
   const [currentLevel, setCurrentLevel] = useState('standards'); // 'standards', 'subjects', 'chapters'
-  const [data, setData] = useState([]); 
+  const [data, setData] = useState([]);
   const [selectedStandard, setSelectedStandard] = useState(null);
   const [selectedSubject, setSelectedSubject] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [isUserTeacher, setIsUserTeacher] = useState(false)
 
   useFocusEffect(
     useCallback(() => {
-      
-
       BackHandler.addEventListener('hardwareBackPress', handleBackPress);
-
       return () => BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
     }, [currentLevel, selectedStandard])
   );
@@ -55,7 +57,13 @@ const HomeScreen = () => {
   };
 
   useEffect(() => {
-    fetchStandards();
+    const initializeData = async () => {
+      const teacherStatus = await isTeacher();
+      setIsUserTeacher(teacherStatus);
+      await fetchStandards();
+    };
+
+    initializeData();
   }, []);
 
   const fetchStandards = async () => {
@@ -71,13 +79,20 @@ const HomeScreen = () => {
     }
   };
 
-  const fetchSubjects = async (standardId) => {
+  const fetchSubjects = async (standard) => {
     try {
-      get(`/subjects/${standardId}`).then((response) => {
+      get(`/subjects/${standard.id}`).then((response) => {
         if (response.status === 'success') {
           setData(response.data);
           setCurrentLevel('subjects');
-          setSelectedStandard(standardId);
+          setSelectedStandard(standard);
+        } else {
+          Toast.show({
+            type: 'error',
+            position: 'top',
+            text1: `No Subjects Found For ${standard.standard_name}`,
+            text2: '',
+          });
         }
       });
     } catch (error) {
@@ -85,13 +100,20 @@ const HomeScreen = () => {
     }
   };
 
-  const fetchChapters = async (subjectId) => {
+  const fetchChapters = async (subject) => {
     try {
-      get(`/chapters/${subjectId}`).then((response) => {
+      get(`/chapters/${subject.id}`).then((response) => {
         if (response.status === 'success') {
           setData(response.data);
           setCurrentLevel('chapters');
-          setSelectedSubject(subjectId);
+          setSelectedSubject(subject);
+        } else {
+          Toast.show({
+            type: 'error',
+            position: 'top',
+            text1: `No Subjects Found For ${subject.subject_name}`,
+            text2: '',
+          });
         }
       });
     } catch (error) {
@@ -99,32 +121,58 @@ const HomeScreen = () => {
     }
   };
 
+
+
   return (
     <View style={styles.container}>
-      <CustomHeader 
-        title={currentLevel === 'standards' ? 'Select Standard' : currentLevel === 'subjects' ? 'Select Subject' : 'Select Chapter'} 
-        backButtonVisible={currentLevel !== 'standards'} 
+      <CustomHeader
+        title={currentLevel === 'standards' ? 'Select Standard' : currentLevel === 'subjects' ? 'Select Subject' : 'Select Chapter'}
+        backButtonVisible={currentLevel !== 'standards'}
         onBackPress={handleBackPress}
-        profileVisible={true} 
+        profileVisible={true}
       />
-      
-      <View style={styles.content}>
-        {data.map((item) => (
+
+      <FlatList
+        data={data}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
           <Button
-            key={item.id}
             onPress={() => {
               if (currentLevel === 'standards') {
-                fetchSubjects(item.id);
+                fetchSubjects(item);
               } else if (currentLevel === 'subjects') {
-                fetchChapters(item.id);
+                fetchChapters(item);
               } else {
                 navigation.navigate('ChapterDetails', { chapterId: item.id });
               }
             }}
             text={item.subject_name || item.standard_name || item.chapter_name} // Handle different API responses
           />
-        ))}
-      </View>
+        )}
+        contentContainerStyle={styles.listContent}
+        ListFooterComponent={
+          isUserTeacher && (
+            <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
+              <Text style={styles.addText}>+</Text>
+            </TouchableOpacity>
+          )
+        }
+      />
+
+      {modalVisible && (
+        <ConfirmationModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          currentLevel={currentLevel}
+          selectedStandard={selectedStandard}
+          selectedSubject={selectedSubject}
+          refreshData={() => {
+            if (currentLevel === 'standards') fetchStandards();
+            if (currentLevel === 'subjects') fetchSubjects(selectedStandard);
+            if (currentLevel === 'chapters') fetchChapters(selectedSubject);
+          }}
+        />
+      )}
     </View>
   );
 };
@@ -133,9 +181,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  content: {
-    flex: 1,
+  listContent: {
     padding: 20,
+    alignItems: 'center',
   },
   button: {
     flexDirection: 'row',
@@ -168,6 +216,17 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
   },
+  addButton: {
+    backgroundColor: 'green',
+    width: 45,
+    height: 45,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+    alignSelf: 'center',
+  },
+  addText: { fontSize: 25, color: 'white', fontWeight: 'bold' },
 });
 
 export default HomeScreen;

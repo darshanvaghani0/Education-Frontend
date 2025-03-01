@@ -11,42 +11,67 @@ import {
     Alert,
 } from "react-native";
 import Toast from "react-native-toast-message";
-import { uploadImage } from "../../services/api";
+import { postApi, uploadImage } from "../../services/api";
+import { getUserId } from "../features/auth/user_data";
 
 const { width } = Dimensions.get("window");
 
-const ConfirmationModal = ({
-    isVisible,
-    onClose,
-    suffixData,
-    setSelectedBiltyId,
-    setBiltyNo,
-    handleUploadAgain
-}) => {
-    const [biltyNumber, setBiltyNumber] = useState("");
+const ConfirmationModal = ({ visible, onClose, currentLevel, selectedStandard, selectedSubject, refreshData }) => {
+    const [name, setName] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const biltyInputRef = useRef(null);
 
-    useEffect(() => {
-        if (isVisible) {
-            setTimeout(() => biltyInputRef.current?.focus(), 500);
+    const getTitle = () => {
+        return currentLevel === 'standards' ? 'Standard' :
+            currentLevel === 'subjects' ? 'Subject' : 'Chapter';
+    };
+
+    const handleSubmit = async () => {
+        setIsLoading(true)
+        if (!name.trim()) {
+            Alert.alert('Error', 'Please enter a valid name.');
+            return;
         }
-    }, [isVisible]);
+        const user_id = await getUserId()
+        let endpoint = '';
+        let body = { created_by: user_id };
 
-    const onYesClick = () => {
-        if(biltyNumber){
-            handleUploadAgain(biltyNumber)
+        if (currentLevel === 'standards') {
+            endpoint = '/standards/';
+            body.standard_name = name;
+        } else if (currentLevel === 'subjects' && selectedStandard) {
+            endpoint = '/subjects/';
+            body.subject_name = name;
+            body.standard_id = selectedStandard;
+        } else if (currentLevel === 'chapters' && selectedSubject) {
+            endpoint = '/chapters/';
+            body.chapter_name = name;
+            body.subject_id = selectedSubject;
         } else {
-            handleUploadAgain(suffixData[0].bilty_no)
+            Alert.alert('Error', 'Missing required selection.');
+            return;
         }
-        onClose()
-    }
+
+        try {
+            postApi(endpoint, body).then((res) => {
+                if (res.status === 'success') {
+                    setIsLoading(false)
+                    setName('');
+                    onClose();
+                    refreshData();
+                } else {
+
+                }
+            }).finally(() => { setIsLoading(false) })
+        } catch (error) {
+            Alert.alert('Error', 'Something went wrong.');
+        }
+    };
 
     return (
-        <Modal transparent visible={isVisible} animationType="slide">
+        <Modal transparent visible={visible} animationType="slide">
             <View style={styles.modalContainer}>
                 <View style={styles.modalContent}>
-                    <Text style={styles.header}>Confirm Bilty Number</Text>
+                    <Text style={styles.header}>Add {getTitle()}</Text>
                     <TouchableOpacity
                         style={[styles.cancelButton, isLoading && styles.disabled]}
                         disabled={isLoading}
@@ -58,18 +83,12 @@ const ConfirmationModal = ({
                     <View style={styles.separator} />
 
                     <View style={styles.body}>
-                        <Text>
-                            You uploaded POD for{" "}
-                            <Text style={styles.bold}>{suffixData[0]?.bilty_no || "N/A"}</Text>.{"\n"}
-                        </Text>
-                        <Text style={styles.label}>If not, enter the bilty number:</Text>
                         <TextInput
-                            ref={biltyInputRef}
                             style={styles.input}
-                            placeholder="Enter bilty number"
+                            placeholder={`Enter ${getTitle()} name`}
                             placeholderTextColor="gray"
-                            value={biltyNumber}
-                            onChangeText={setBiltyNumber}
+                            value={name}
+                            onChangeText={setName}
                             editable={!isLoading}
                         />
                     </View>
@@ -77,15 +96,12 @@ const ConfirmationModal = ({
                     <View style={styles.separator} />
 
                     <View style={styles.footer}>
-                        <TouchableOpacity style={[styles.button,isLoading && styles.disabled]} onPress={onClose} disabled={isLoading}>
-                            <Text style={styles.buttonText}>No</Text>
-                        </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.button, isLoading && styles.disabled]}
-                            onPress={onYesClick}
+                            onPress={handleSubmit}
                             disabled={isLoading}
                         >
-                            <Text style={styles.buttonText}>Yes</Text>
+                            <Text style={styles.buttonText}>Add</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -114,7 +130,7 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         // textAlign: "center",
         // marginBottom: 10,
-        padding:15
+        padding: 15
     },
     cancelButton: {
         position: "absolute",
@@ -136,13 +152,13 @@ const styles = StyleSheet.create({
         // marginVertical: 10,
     },
     body: {
-        paddingVertical:15,
+        paddingVertical: 15,
         paddingHorizontal: 30,
         // alignItems: "center",
     },
     bold: {
         fontWeight: "bold",
-        fontSize:25
+        fontSize: 25
     },
     label: {
         fontSize: 14,
@@ -161,7 +177,7 @@ const styles = StyleSheet.create({
     },
     footer: {
         flexDirection: "row",
-        justifyContent: "space-around",
+        justifyContent:'flex-end',
         padding: 15,
     },
     button: {

@@ -7,6 +7,8 @@ import ToastConfig from './src/app/features/toastConfig';
 import Toast from 'react-native-toast-message';
 import HomeScreen from './src/app/features/screen/HomeScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import ChapterPDFScreen from './src/app/features/screen/ChapterPDFScreen';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const Stack = createNativeStackNavigator();
 
@@ -37,35 +39,35 @@ export default function App() {
     try {
       const data = await AsyncStorage.getItem('loginData');
       console.log('called', data);
-  
+
       if (!data) {
         setInitialRoute('Login');
         return false;
       }
-  
+
       const { loginTime } = JSON.parse(data);
       if (!loginTime) {
         setInitialRoute('Login');
         return false;
       }
-  
+
       const currentTime = new Date();
       const loginTimestamp = new Date(loginTime);
-  
+
       if (isNaN(loginTimestamp.getTime())) {
         console.error('Invalid login timestamp');
         setInitialRoute('Login');
         return false;
       }
-  
+
       const hoursDifference = (currentTime - loginTimestamp) / (1000 * 60 * 60);
-  
+
       if (hoursDifference > 24) {
         await AsyncStorage.removeItem('loginData');
         setInitialRoute('Login');
         return false;
       }
-  
+
       setInitialRoute('Home');
       return true;
     } catch (error) {
@@ -74,7 +76,7 @@ export default function App() {
       return false;
     }
   };
-  
+
 
   if (initialRoute === null) {
     return (
@@ -85,24 +87,32 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName={initialRoute}>
-          <Stack.Screen
-            name="Login"
-            component={LoginPage}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Home"
-            component={HomeScreen}
-            options={{ headerShown: false }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-      <Toast config={ToastConfig} />
-      {/* <VersionUpdateModal isVisible={isOldVersion} downloadLink={downloadLink} /> */}
-    </SafeAreaView>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaView style={styles.container}>
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName={initialRoute}>
+            <Stack.Screen
+              name="Login"
+              component={LoginPage}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="ChapterDetails"
+              component={ChapterPDFScreen}
+              options={{ headerShown: false }}
+            />
+
+          </Stack.Navigator>
+        </NavigationContainer>
+        <Toast config={ToastConfig} />
+        {/* <VersionUpdateModal isVisible={isOldVersion} downloadLink={downloadLink} /> */}
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
 
