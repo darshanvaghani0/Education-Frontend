@@ -10,6 +10,8 @@ import RNFS from 'react-native-fs';
 import FileViewer from 'react-native-file-viewer';
 import { LogBox } from 'react-native';
 import Toast from 'react-native-toast-message';
+import { isTeacher } from '../auth/user_data';
+import AddMaterialModal from '../../Modal/AddMaterialModal';
 
 LogBox.ignoreLogs(['file:// exposed beyond app']);
 
@@ -20,9 +22,17 @@ const ChapterPDFScreen = () => {
 
     const [pdfFolders, setPdfFolders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isUserTeacher, setIsUserTeacher] = useState(false);
+    const [isModalVisible, setIsModalVisible] = useState(false);
 
     useEffect(() => {
-        fetchChapterPDFs();
+        const initializeData = async () => {
+            const teacherStatus = await isTeacher();
+            setIsUserTeacher(teacherStatus);
+            await fetchChapterPDFs();
+        };
+
+        initializeData();
     }, []);
 
     const fetchChapterPDFs = async () => {
@@ -76,7 +86,7 @@ const ChapterPDFScreen = () => {
                     type: 'success',
                     position: 'top',
                     text1: '🎉 PDF Downloaded Successfully!',
-                     text2: '📂 Saved in your Downloads folder',
+                    text2: '📂 Saved in your Downloads folder',
                 });
                 let contentUri = localFile;
                 if (Platform.OS === 'android' && Platform.Version >= 24) {
@@ -113,7 +123,7 @@ const ChapterPDFScreen = () => {
                 <View style={styles.loaderContainer}>
                     <ActivityIndicator size="large" color="#007bff" />
                 </View>
-            ) : pdfFolders.length === 0 ? (
+            ) : (pdfFolders.length === 0 && !isUserTeacher) ? (
                 <Text style={styles.noDataText}>No PDFs available</Text>
             ) : (
                 <ScrollView contentContainerStyle={styles.listContainer}>
@@ -124,13 +134,25 @@ const ChapterPDFScreen = () => {
                                 style={styles.folderCard}
                                 onPress={() => handleFolderClick(item)}
                             >
-                                <Image source={require('../../../assets/clipboard.png')} style={styles.folderIcon} />
+                                <Image source={require('../../../assets/pdf.png')} style={styles.folderIcon} />
                                 <Text style={styles.folderText}>{item.pdf_name || 'Unnamed PDF'}</Text>
                             </TouchableOpacity>
                         ))}
+                        {isUserTeacher && (
+                            <TouchableOpacity style={[styles.folderCard,{backgroundColor:'#D3D3D3',borderWidth:1,borderStyle: 'dashed',}]} onPress={() => setIsModalVisible(true)}>
+                                <Image source={require('../../../assets/add-file.png')} style={styles.folderIcon} />
+                                <Text style={styles.folderText}>Add Material</Text>
+                            </TouchableOpacity>
+                        )}
                     </View>
                 </ScrollView>
             )}
+            <AddMaterialModal
+                visible={isModalVisible}
+                onClose={() => setIsModalVisible(false)}
+                chapterId={chapterId}
+                onUploadSuccess={fetchChapterPDFs} // Refresh PDF list after upload
+            />
         </View>
     );
 };
@@ -142,10 +164,11 @@ const styles = StyleSheet.create({
     rowContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        padding:10
     },
     folderCard: {
-        width: '48%',
+        width: '47%',
         backgroundColor: 'white',
         borderRadius: 10,
         padding: 20,

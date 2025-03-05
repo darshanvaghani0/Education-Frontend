@@ -87,6 +87,11 @@ const HomeScreen = () => {
           setCurrentLevel('subjects');
           setSelectedStandard(standard);
         } else {
+          if(isUserTeacher){
+            setData([]);
+            setCurrentLevel('subjects');
+            setSelectedStandard(standard);
+          }
           Toast.show({
             type: 'error',
             position: 'top',
@@ -108,6 +113,11 @@ const HomeScreen = () => {
           setCurrentLevel('chapters');
           setSelectedSubject(subject);
         } else {
+          if(isUserTeacher){
+            setData([]);
+            setCurrentLevel('chapters');
+            setSelectedStandard(subject);
+          }
           Toast.show({
             type: 'error',
             position: 'top',

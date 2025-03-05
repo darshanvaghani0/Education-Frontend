@@ -1,4 +1,4 @@
-export const BASE_URL = 'http://192.168.9.143:8000';
+export const BASE_URL = 'http://192.168.135.143:8000';
 
 export const get = async (endpoint, params = {}) => {
   try {
