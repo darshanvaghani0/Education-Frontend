@@ -37,6 +37,15 @@ const LoginPage = () => {
     setCompanyName(versionInfo['companyName'] || 'Your Company');
   }, []);
 
+  const resetForm = () => {
+    setUsername('');
+    setPassword('');
+    setErrorMessage('');
+    setName('');
+    setEmail('');
+    setUserType('Teacher');
+  };
+
   const handleLogin = () => {
     setErrorMessage('');
     if (!username || !password) {
@@ -101,6 +110,7 @@ const LoginPage = () => {
             text2: 'Your account has been created successfully.',
           });
           setIsSignup(false);
+          resetForm();
         } else {
           setErrorMessage(response.message || 'Signup failed');
         }
@@ -165,8 +175,11 @@ const LoginPage = () => {
             {loading ? <ActivityIndicator size="small" color="#ffffff" /> : <Text style={styles.buttonText}>{isSignup ? 'Sign Up' : 'Login'}</Text>}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => setIsSignup(!isSignup)}>
-            <Text style={styles.linkText}>{isSignup ? 'Already have an account? ' : "Don't have an account? "}<Text style={[styles.linkText, { color: '#1E90FF' }]}>{isSignup ? 'Login' : "Create Account"}</Text></Text>
+          <TouchableOpacity onPress={() => {
+            setIsSignup(!isSignup);
+            resetForm();
+          }}>
+            <Text style={styles.linkText}>{isSignup ? 'Already have an account? ' : "Don't have an account? "}<Text style={[styles.linkText, { color: '#1E90FF' }]}>{isSignup ? 'Login' : "Sign up"}</Text></Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -237,6 +250,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#000000', // Changed to black
     marginTop: 10,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 14,
+    // textAlign: 'center',
+    marginBottom: 10,
   },
 });
 

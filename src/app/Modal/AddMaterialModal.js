@@ -84,19 +84,21 @@ const AddMaterialModal = ({ visible, onClose, chapterId, onUploadSuccess }) => {
         <Modal transparent visible={visible} animationType="slide">
             <View style={styles.modalContainer}>
                 <View style={styles.modalContent}>
-                    <Text style={styles.header}>Add Material</Text>
-
-                    <TouchableOpacity
-                        style={[styles.cancelButton, uploading && styles.disabled]}
-                        disabled={uploading}
-                        onPress={onClose}
-                    >
-                        <Image source={require("../../assets/cancel.png")} style={styles.cancelButtonImage} />
-                    </TouchableOpacity>
+                    <View style={styles.headerContainer}>
+                        <Text style={styles.header}>Add Material</Text>
+                        <TouchableOpacity
+                            style={[styles.cancelButton, uploading && styles.disabled]}
+                            disabled={uploading}
+                            onPress={onClose}
+                        >
+                            <Image source={require("../../assets/cancel.png")} style={styles.cancelButtonImage} />
+                        </TouchableOpacity>
+                    </View>
 
                     <View style={styles.separator} />
 
                     <View style={styles.body}>
+                        <Text style={styles.label}>PDF Title</Text>
                         <TextInput
                             style={styles.input}
                             placeholder="Enter PDF Title"
@@ -107,7 +109,8 @@ const AddMaterialModal = ({ visible, onClose, chapterId, onUploadSuccess }) => {
                         />
 
                         <TouchableOpacity style={styles.fileButton} onPress={pickPDF} disabled={uploading}>
-                            <Text style={styles.fileButtonText}>
+                            <Image source={require("../../assets/upload.png")} style={styles.uploadIcon} />
+                            <Text style={styles.fileButtonText} numberOfLines={1}>
                                 {selectedFile ? selectedFile.name : "Select PDF"}
                             </Text>
                         </TouchableOpacity>
@@ -144,15 +147,18 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         elevation: 5,
     },
+    headerContainer: {
+        height: 60,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 15,
+    },
     header: {
         fontSize: 18,
         fontWeight: "bold",
-        padding: 15,
     },
     cancelButton: {
-        position: "absolute",
-        top: 13,
-        right: 13,
         width: 24,
         height: 24,
         justifyContent: "center",
@@ -171,6 +177,12 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         paddingHorizontal: 30,
     },
+    label: {
+        fontSize: 14,
+        fontWeight: "500",
+        color: "black",
+        marginBottom: 5,
+    },
     input: {
         borderWidth: 1,
         borderColor: "gray",
@@ -186,23 +198,36 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 5,
         alignItems: "center",
+        flexDirection: 'row',
+        justifyContent: 'center',
+        width: '60%',
+        alignSelf: 'center',
+        paddingVertical: 10,
+    },
+    uploadIcon: {
+        width: 20,
+        height: 20,
+        marginRight: 10,
     },
     fileButtonText: {
         fontSize: 16,
         color: "black",
     },
     footer: {
+        height: 60,
         flexDirection: "row",
         justifyContent: "flex-end",
-        padding: 15,
+        alignItems: "center",
+        paddingHorizontal: 15,
     },
     button: {
         backgroundColor: "#fff",
         borderRadius: 5,
         shadowColor: "#000",
-        shadowOpacity: 0.25,
+        shadowOpacity: 0.2,
         shadowRadius: 3,
-        elevation: 3,
+        elevation: 4,
+        shadowOffset: { width: 0, height: 2 },
         width: "40%",
         height: 40,
         alignItems: "center",

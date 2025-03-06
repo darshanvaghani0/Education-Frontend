@@ -29,6 +29,12 @@ export const isTeacher = async () => {
   return user?.response?.data?.role_id === 2;
 };
 
+export const isAdmin = async () => {
+  const user = await getUser();
+  console.log(user?.response?.data?.is_admin === 1)
+  return user?.response?.data?.is_admin === 1;
+};
+
 // Get user ID (for API requests)
 export const getUserId = async () => {
   const user = await getUser();

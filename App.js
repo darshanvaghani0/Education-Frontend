@@ -9,6 +9,7 @@ import HomeScreen from './src/app/features/screen/HomeScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ChapterPDFScreen from './src/app/features/screen/ChapterPDFScreen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import NewSignUpUser from './src/app/features/screen/NewSignUpUser';
 
 const Stack = createNativeStackNavigator();
 
@@ -104,6 +105,12 @@ export default function App() {
             <Stack.Screen
               name="ChapterDetails"
               component={ChapterPDFScreen}
+              options={{ headerShown: false }}
+            />
+
+            <Stack.Screen
+              name="NewSignUpUser"
+              component={NewSignUpUser}
               options={{ headerShown: false }}
             />
 

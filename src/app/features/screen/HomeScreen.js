@@ -131,20 +131,23 @@ const HomeScreen = () => {
     }
   };
 
+  console.log('darshan',selectedStandard)
 
 
   return (
     <View style={styles.container}>
       <CustomHeader
-        title={currentLevel === 'standards' ? 'Select Standard' : currentLevel === 'subjects' ? 'Select Subject' : 'Select Chapter'}
+        title={currentLevel === 'standards' ? 'Home' : currentLevel === 'subjects' ? selectedStandard.standard_name : selectedSubject.subject_name}
         backButtonVisible={currentLevel !== 'standards'}
         onBackPress={handleBackPress}
         profileVisible={true}
       />
-
       <FlatList
         data={data}
         keyExtractor={(item) => item.id.toString()}
+        ListHeaderComponent = {
+          <Text style={styles.headerText}>{currentLevel === 'standards' ? 'Select Standard' : currentLevel === 'subjects' ? 'Select Subject' : 'Select Chapter'}</Text>
+        }
         renderItem={({ item }) => (
           <Button
             onPress={() => {
@@ -213,6 +216,12 @@ const styles = StyleSheet.create({
     color: 'black',
     fontSize: 18,
     flex: 1,
+    textAlign: 'left',
+    fontWeight: '500',
+  },
+  headerText:{
+    color: 'black',
+    fontSize: 18,
     textAlign: 'left',
     fontWeight: '500',
   },

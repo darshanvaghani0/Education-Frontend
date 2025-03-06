@@ -1,20 +1,30 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, Modal, Dimensions } from 'react-native';
+import { isAdmin } from './auth/user_data';
 
 const { width, height } = Dimensions.get('window');
 
 const CustomHeader = ({ title, onBackPress, backButtonVisible, profileVisible, profileImage, viewProfileIcon, logoutIcon }) => {
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isUserAdmin, setIsUserAdmin] = useState(false)
     const navigation = useNavigation();
+
+    useEffect(() => {
+        const initializeData = async () => {
+            const adminStatus = await isAdmin();
+            setIsUserAdmin(adminStatus);
+        };
+        initializeData();
+    }, []);
 
     const handleViewProfile = () => {
         console.log('View Profile clicked!');
     };
 
-    const handleChangeBranch = () => {
-        navigation.navigate('BranchSelect');
+    const handleApproveUser = () => {
+        navigation.navigate('NewSignUpUser');
     }
 
     const handleLogout = () => {
@@ -65,16 +75,18 @@ const CustomHeader = ({ title, onBackPress, backButtonVisible, profileVisible, p
                             <Text style={styles.optionText}>View Profile</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity
-                            style={styles.option}
-                            onPress={() => {
-                                setIsModalVisible(false);
-                                handleChangeBranch();
+                        {isUserAdmin && (
+                            <TouchableOpacity
+                                style={styles.option}
+                                onPress={() => {
+                                    setIsModalVisible(false);
+                                handleApproveUser();
                             }}
                         >
-                            <Image source={require('./../../assets/location.png')} style={styles.optionIcon} />
-                            <Text style={styles.optionText}>Change Branch</Text>
-                        </TouchableOpacity>
+                            <Image source={require('./../../assets/tick-inside-circle.png')} style={styles.optionIcon} />
+                                <Text style={styles.optionText}>Approve User</Text>
+                            </TouchableOpacity>
+                        )}
 
                         <TouchableOpacity
                             style={styles.option}
