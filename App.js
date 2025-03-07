@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, SafeAreaView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, SafeAreaView, StyleSheet, View, StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginPage from './src/app/features/auth/LoginPage';
@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ChapterPDFScreen from './src/app/features/screen/ChapterPDFScreen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import NewSignUpUser from './src/app/features/screen/NewSignUpUser';
+import { colors } from './src/app/theme/theme';
 
 const Stack = createNativeStackNavigator();
 
@@ -89,6 +90,10 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={colors.background.primary}
+      />
       <SafeAreaView style={styles.container}>
         <NavigationContainer>
           <Stack.Navigator initialRouteName={initialRoute}>
@@ -126,11 +131,12 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background.primary,
   },
   loaderContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background.primary,
   },
 });

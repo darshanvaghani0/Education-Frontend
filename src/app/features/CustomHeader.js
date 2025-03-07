@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, Modal, Dimensions } from 'react-native';
 import { getUserName, isAdmin } from './auth/user_data';
+import { colors, spacing, shadows, typography, borderRadius } from '../theme/theme';
 
 const { width, height } = Dimensions.get('window');
 
@@ -16,7 +17,7 @@ const CustomHeader = ({ title, onBackPress, backButtonVisible, profileVisible })
         const checkAdminStatus = async () => {
             const adminStatus = await isAdmin();
             setIsUserAdmin(adminStatus);
-            const userName = await getUserName();
+            const userName = await getUserNamex();
             setUserName(userName);
         };
         checkAdminStatus();
@@ -142,46 +143,41 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: width * 0.04,
+        padding: spacing.md,
         height: height * 0.08,
-        backgroundColor: 'white',
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
+        backgroundColor: colors.background.primary,
+        ...shadows.md,
     },
     leftSection: {
         flexDirection: 'row',
         alignItems: 'center',
     },
     backButton: {
-        padding: 8,
-        marginRight: 8,
+        padding: spacing.sm,
+        marginRight: spacing.sm,
     },
     backIcon: {
         width: width * 0.05,
         height: width * 0.05,
+        tintColor: colors.text.primary,
     },
     title: {
-        fontSize: 20,
-        fontWeight: '600',
-        color: '#1a1a1a',
+        ...typography.h3,
+        color: colors.text.primary,
     },
     profileButton: {
         width: width * 0.1,
         height: width * 0.1,
-        borderRadius: width * 0.05,
+        borderRadius: borderRadius.full,
         overflow: 'hidden',
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: colors.background.accent,
     },
     profileIcon: {
-        width: '100%',
-        height: '100%',
+        width: '80%',
+        height: '80%',
+        tintColor: colors.primary,
     },
     modalOverlay: {
         flex: 1,
@@ -190,73 +186,71 @@ const styles = StyleSheet.create({
     menuContainer: {
         position: 'absolute',
         right: 0,
-        width: 250,
+        width: width * 0.7,
+        maxWidth: 300,
         height: '100%',
-        backgroundColor: 'white',
-        borderRadius: 12,
-        padding: 16,
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
+        backgroundColor: colors.background.primary,
+        borderTopLeftRadius: borderRadius.xl,
+        borderBottomLeftRadius: borderRadius.xl,
+        padding: spacing.lg,
+        ...shadows.lg,
     },
     profileSection: {
         alignItems: 'center',
-        paddingVertical: 16,
+        paddingVertical: spacing.lg,
     },
     userName: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#1a1a1a',
-        marginBottom: 12,
+        ...typography.h2,
+        color: colors.text.primary,
+        marginBottom: spacing.md,
     },
     profileImage: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        marginBottom: 16,
+        width: width * 0.2,
+        height: width * 0.2,
+        borderRadius: borderRadius.full,
+        marginBottom: spacing.lg,
+        backgroundColor: colors.background.accent,
     },
     buttonContainer: {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingHorizontal: 8,
+        paddingHorizontal: spacing.sm,
     },
     profileActionButton: {
-        backgroundColor: '#f0f0f0',
-        padding: 8,
-        borderRadius: 8,
+        backgroundColor: colors.background.accent,
+        padding: spacing.sm,
+        borderRadius: borderRadius.md,
         minWidth: 80,
         alignItems: 'center',
     },
     buttonText: {
-        fontSize: 14,
-        color: '#1a1a1a',
+        ...typography.body,
+        color: colors.text.primary,
     },
     divider: {
         height: 1,
-        backgroundColor: '#e0e0e0',
-        marginVertical: 8,
+        backgroundColor: colors.background.accent,
+        marginVertical: spacing.md,
     },
     menuItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 12,
-        borderRadius: 8,
+        padding: spacing.md,
+        borderRadius: borderRadius.md,
+        marginVertical: spacing.xs,
+        backgroundColor: colors.background.secondary,
     },
     menuIcon: {
         width: 24,
         height: 24,
+        marginRight: spacing.md,
+        tintColor: colors.primary,
     },
     menuText: {
-        marginLeft: 12,
-        fontSize: 16,
-        color: '#1a1a1a',
-    }
+        ...typography.body,
+        color: colors.text.primary,
+    },
 });
 
 export default CustomHeader;

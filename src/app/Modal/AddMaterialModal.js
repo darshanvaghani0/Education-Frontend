@@ -15,32 +15,41 @@ import DocumentPicker from "react-native-document-picker";
 import Toast from "react-native-toast-message";
 import { getUserId } from "../features/auth/user_data";
 import { BASE_URL } from "../../services/api";
+import { colors, spacing, shadows, typography, borderRadius, commonStyles } from '../theme/theme';
 
 const { width } = Dimensions.get("window");
 
 const AddMaterialModal = ({ visible, onClose, chapterId, onUploadSuccess }) => {
-    const [pdfTitle, setPdfTitle] = useState('');
+    const [pdfName, setPdfName] = useState('');
     const [selectedFile, setSelectedFile] = useState(null);
     const [uploading, setUploading] = useState(false);
 
-    const pickPDF = async () => {
+    const pickDocument = async () => {
         try {
-            const res = await DocumentPicker.pick({
+            const result = await DocumentPicker.pick({
                 type: [DocumentPicker.types.pdf],
             });
-            setSelectedFile(res[0]);
+            setSelectedFile(result[0]);
         } catch (err) {
-            if (DocumentPicker.isCancel(err)) {
-                console.log("User cancelled file picker");
-            } else {
-                console.error("File selection error:", err);
+            if (!DocumentPicker.isCancel(err)) {
+                Toast.show({
+                    type: 'error',
+                    position: 'top',
+                    text1: 'Error',
+                    text2: 'Error picking the document',
+                });
             }
         }
     };
 
-    const uploadPDF = async () => {
-        if (!pdfTitle.trim() || !selectedFile) {
-            Toast.show({ type: "error", text1: "Error", text2: "Please enter a title and select a PDF" });
+    const handleSubmit = async () => {
+        if (!pdfName.trim() || !selectedFile) {
+            Toast.show({
+                type: 'error',
+                position: 'top',
+                text1: 'Error',
+                text2: 'Please enter PDF name and select a file',
+            });
             return;
         }
 
@@ -48,17 +57,16 @@ const AddMaterialModal = ({ visible, onClose, chapterId, onUploadSuccess }) => {
         const formData = new FormData();
         const userId = await getUserId();
 
-        // formData.append("chapter_id", chapterId);
-        // formData.append("created_by", userId);
-        // formData.append("pdf_name", pdfTitle);
-        formData.append("file", {
+        formData.append('pdf_name', pdfName);
+        formData.append('chapter_id', chapterId);
+        formData.append('pdf_file', {
             uri: selectedFile.uri,
+            type: selectedFile.type,
             name: selectedFile.name,
-            type: 'application/pdf',
         });
 
         try {
-            const response = await fetch(`${BASE_URL}/chapter_pdf/upload/?chapter_id=${chapterId}&created_by=${userId}&pdf_name=${pdfTitle}`, {
+            const response = await fetch(`${BASE_URL}/chapter_pdf/upload/?chapter_id=${chapterId}&created_by=${userId}&pdf_name=${pdfName}`, {
                 method: "POST",
                 headers: { "Content-Type": "multipart/form-data" },
                 body: formData,
@@ -66,180 +74,146 @@ const AddMaterialModal = ({ visible, onClose, chapterId, onUploadSuccess }) => {
             const result = await response.json();
 
             if (result.status === "success") {
-                Toast.show({ type: "success", text1: "Upload Successful", text2: result.data.pdf_name });
-                onUploadSuccess();
+                Toast.show({
+                    type: 'success',
+                    position: 'top',
+                    text1: 'Success',
+                    text2: 'PDF uploaded successfully',
+                });
+                setPdfName('');
+                setSelectedFile(null);
                 onClose();
+                onUploadSuccess();
             } else {
-                throw new Error(result.message || "Upload failed");
+                throw new Error(result.message || "Failed to upload PDF");
             }
         } catch (error) {
             console.error("Upload Error:", error);
-            Toast.show({ type: "error", text1: "Upload Failed", text2: error.message });
+            Toast.show({
+                type: 'error',
+                position: 'top',
+                text1: 'Error',
+                text2: 'Something went wrong',
+            });
         } finally {
             setUploading(false);
         }
     };
 
     return (
-        <Modal transparent visible={visible} animationType="slide">
-            <View style={styles.modalContainer}>
+        <Modal
+            visible={visible}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={onClose}
+        >
+            <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
-                    <View style={styles.headerContainer}>
-                        <Text style={styles.header}>Add Material</Text>
-                        <TouchableOpacity
-                            style={[styles.cancelButton, uploading && styles.disabled]}
-                            disabled={uploading}
+                    <Text style={styles.title}>Add PDF Material</Text>
+                    
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Enter PDF name"
+                        placeholderTextColor={colors.text.light}
+                        value={pdfName}
+                        onChangeText={setPdfName}
+                    />
+
+                    <TouchableOpacity 
+                        style={styles.fileButton} 
+                        onPress={pickDocument}
+                    >
+                        <Text style={styles.fileButtonText}>
+                            {selectedFile ? selectedFile.name : 'Select PDF File'}
+                        </Text>
+                    </TouchableOpacity>
+
+                    <View style={styles.buttonContainer}>
+                        <TouchableOpacity 
+                            style={[styles.button, styles.cancelButton]} 
                             onPress={onClose}
                         >
-                            <Image source={require("../../assets/cancel.png")} style={styles.cancelButtonImage} />
+                            <Text style={styles.buttonText}>Cancel</Text>
                         </TouchableOpacity>
-                    </View>
-
-                    <View style={styles.separator} />
-
-                    <View style={styles.body}>
-                        <Text style={styles.label}>PDF Title</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Enter PDF Title"
-                            placeholderTextColor="gray"
-                            value={pdfTitle}
-                            onChangeText={setPdfTitle}
-                            editable={!uploading}
-                        />
-
-                        <TouchableOpacity style={styles.fileButton} onPress={pickPDF} disabled={uploading}>
-                            <Image source={require("../../assets/upload.png")} style={styles.uploadIcon} />
-                            <Text style={styles.fileButtonText} numberOfLines={1}>
-                                {selectedFile ? selectedFile.name : "Select PDF"}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    <View style={styles.separator} />
-
-                    <View style={styles.footer}>
-                        <TouchableOpacity
-                            style={[styles.button, uploading && styles.disabled]}
-                            onPress={uploadPDF}
-                            disabled={uploading}
+                        <TouchableOpacity 
+                            style={[styles.button, styles.submitButton]} 
+                            onPress={handleSubmit}
                         >
-                            {uploading ? <ActivityIndicator color="black" /> : <Text style={styles.buttonText}>Upload</Text>}
+                            <Text style={[styles.buttonText, styles.submitButtonText]}>Upload</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
             </View>
-            <Toast />
         </Modal>
     );
 };
 
 const styles = StyleSheet.create({
-    modalContainer: {
+    modalOverlay: {
         flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     modalContent: {
-        width: width * 0.85,
-        backgroundColor: "#fff",
-        borderRadius: 10,
-        elevation: 5,
+        width: '90%',
+        backgroundColor: colors.background.secondary,
+        borderRadius: borderRadius.lg,
+        padding: spacing.xl,
+        ...shadows.lg,
     },
-    headerContainer: {
-        height: 60,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 15,
-    },
-    header: {
-        fontSize: 18,
-        fontWeight: "bold",
-    },
-    cancelButton: {
-        width: 24,
-        height: 24,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    cancelButtonImage: {
-        width: 20,
-        height: 20,
-    },
-    separator: {
-        height: 1,
-        backgroundColor: "gray",
-        width: "100%",
-    },
-    body: {
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: "500",
-        color: "black",
-        marginBottom: 5,
+    title: {
+        ...typography.h3,
+        color: colors.text.primary,
+        marginBottom: spacing.lg,
+        textAlign: 'center',
     },
     input: {
-        borderWidth: 1,
-        borderColor: "gray",
-        borderRadius: 5,
-        padding: 8,
-        fontSize: 14,
-        color: "black",
-        width: "100%",
-        marginBottom: 10,
+        ...commonStyles.input,
+        marginBottom: spacing.lg,
+        backgroundColor: colors.background.accent,
+        borderColor: colors.text.light,
+        color: colors.text.primary,
     },
     fileButton: {
-        backgroundColor: "#ddd",
-        padding: 10,
-        borderRadius: 5,
-        alignItems: "center",
-        flexDirection: 'row',
-        justifyContent: 'center',
-        width: '60%',
-        alignSelf: 'center',
-        paddingVertical: 10,
-    },
-    uploadIcon: {
-        width: 20,
-        height: 20,
-        marginRight: 10,
+        backgroundColor: colors.background.accent,
+        padding: spacing.md,
+        borderRadius: borderRadius.md,
+        marginBottom: spacing.lg,
+        borderWidth: 1,
+        borderColor: colors.text.light,
+        borderStyle: 'dashed',
     },
     fileButtonText: {
-        fontSize: 16,
-        color: "black",
+        ...typography.body,
+        color: colors.text.primary,
+        textAlign: 'center',
     },
-    footer: {
-        height: 60,
-        flexDirection: "row",
-        justifyContent: "flex-end",
-        alignItems: "center",
-        paddingHorizontal: 15,
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: spacing.md,
     },
     button: {
-        backgroundColor: "#fff",
-        borderRadius: 5,
-        shadowColor: "#000",
-        shadowOpacity: 0.2,
-        shadowRadius: 3,
-        elevation: 4,
-        shadowOffset: { width: 0, height: 2 },
-        width: "40%",
-        height: 40,
-        alignItems: "center",
-        justifyContent: "center",
+        flex: 1,
+        padding: spacing.md,
+        borderRadius: borderRadius.md,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    cancelButton: {
+        backgroundColor: colors.background.accent,
+    },
+    submitButton: {
+        backgroundColor: colors.primary,
     },
     buttonText: {
-        color: "black",
-        fontWeight: "500",
-        fontSize: 14,
+        ...typography.body,
+        color: colors.text.primary,
+        fontWeight: '600',
     },
-    disabled: {
-        backgroundColor: "lightgray",
+    submitButtonText: {
+        color: colors.text.white,
     },
 });
 

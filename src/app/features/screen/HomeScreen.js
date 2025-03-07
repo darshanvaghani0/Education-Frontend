@@ -6,6 +6,7 @@ import { get } from '../../../services/api';
 import { isTeacher } from '../auth/user_data';
 import ConfirmationModal from '../../Modal/ConfirmationModal';
 import Toast from 'react-native-toast-message';
+import { colors, spacing, shadows, typography, borderRadius, commonStyles } from '../../theme/theme';
 
 const { width } = Dimensions.get('window');
 
@@ -25,9 +26,9 @@ const Button = ({ onPress, text, currentLevel }) => {
 
   return (
     <TouchableOpacity style={styles.button} onPress={onPress}>
-      <Image style={styles.iconLeft} source={getIcon()} />
+      <Image style={[styles.iconLeft, { tintColor: colors.primary }]} source={getIcon()} />
       <Text style={styles.buttonText}>{text}</Text>
-      <Image style={styles.iconRight} source={require('../../../assets/right.png')} />
+      <Image style={[styles.iconRight, { tintColor: colors.text.light }]} source={require('../../../assets/right.png')} />
     </TouchableOpacity>
   );
 };
@@ -179,7 +180,7 @@ const HomeScreen = () => {
             value={searchText}
             onChangeText={setSearchText}
             onSubmitEditing={handleSearch}
-            placeholderTextColor={'#000'}
+            placeholderTextColor={colors.text.light}
           />
         </View>
       </View>
@@ -237,103 +238,94 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background.primary,
+  },
+  headerText: {
+    ...typography.h3,
+    color: colors.text.primary,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
   },
   searchContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    alignItems: 'flex-start'
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
   },
   searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-  },   
-  searchInput: {
-    height: 40,
-    paddingHorizontal: 10,
-    flex: 1,
+    backgroundColor: colors.background.secondary,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    ...shadows.sm,
   },
   searchIcon: {
     width: 20,
     height: 20,
-    marginLeft: 10,
+    tintColor: colors.text.light,
+    marginRight: spacing.sm,
+  },
+  searchInput: {
+    ...typography.body,
+    flex: 1,
+    color: colors.text.primary,
+    paddingVertical: spacing.sm,
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background.secondary,
+    padding: spacing.md,
+    borderRadius: borderRadius.lg,
+    marginBottom: spacing.sm,
+    marginHorizontal: spacing.lg,
+    ...shadows.sm,
+  },
+  buttonText: {
+    ...typography.body,
+    color: colors.text.primary,
+    flex: 1,
+    marginLeft: spacing.md,
+  },
+  iconLeft: {
+    width: 24,
+    height: 24,
+  },
+  iconRight: {
+    width: 20,
+    height: 20,
   },
   listContent: {
-    paddingHorizontal: 20,
-    alignItems: 'center',
+    paddingVertical: spacing.sm,
   },
   noDataContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingTop: spacing.xl,
   },
   noDataText: {
-    fontSize: 18,
-    color: '#666',
-  },
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: 'white',
-    borderRadius: 10,
-    marginVertical: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 5,
-    width: '100%',
-  },
-  buttonText: {
-    color: 'black',
-    fontSize: 20,
-    flex: 1,
-    textAlign: 'left',
-    fontWeight: '500',
-  },
-  headerText: {
-    color: 'black',
-    fontSize: 25,
-    textAlign: 'left',
-    fontWeight: '500',
-    paddingLeft: 20,
-    paddingTop: 20,
-  },
-  iconLeft: {
-    marginRight: 15,
-    width: 30,
-    height: 30,
-  },
-  iconRight: {
-    marginLeft: 10,
-    width: 20,
-    height: 20,
+    ...typography.body,
+    color: colors.text.secondary,
   },
   addButton: {
-    backgroundColor: 'white',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    position: 'absolute',
+    bottom: spacing.xl,
+    right: spacing.xl,
+    width: 56,
+    height: 56,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
+    ...shadows.md,
   },
   addIcon: {
-    width: 30,
-    height: 30,
-    tintColor: '#4CAF50'
-  }
+    width: 24,
+    height: 24,
+    tintColor: colors.text.white,
+  },
 });
 
 export default HomeScreen;

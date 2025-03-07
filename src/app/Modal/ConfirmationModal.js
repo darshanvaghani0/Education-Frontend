@@ -1,204 +1,156 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import {
-    View,
-    Text,
-    TextInput,
-    Image,
-    TouchableOpacity,
-    Modal,
-    StyleSheet,
-    Dimensions,
-    Alert,
-} from "react-native";
-import Toast from "react-native-toast-message";
-import { postApi, uploadImage } from "../../services/api";
-import { getUserId } from "../features/auth/user_data";
-
-const { width } = Dimensions.get("window");
+import React, { useState } from 'react';
+import { View, Text, Modal, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { postApi } from '../../services/api';
+import Toast from 'react-native-toast-message';
+import { colors, spacing, shadows, typography, borderRadius, commonStyles } from '../theme/theme';
 
 const ConfirmationModal = ({ visible, onClose, currentLevel, selectedStandard, selectedSubject, refreshData }) => {
     const [name, setName] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-
-    const getTitle = () => {
-        return currentLevel === 'standards' ? 'Standard' :
-            currentLevel === 'subjects' ? 'Subject' : 'Chapter';
-    };
 
     const handleSubmit = async () => {
-        setIsLoading(true)
         if (!name.trim()) {
-            Alert.alert('Error', 'Please enter a valid name.');
+            Toast.show({
+                type: 'error',
+                position: 'top',
+                text1: 'Error',
+                text2: 'Please enter a name',
+            });
             return;
         }
-        const user_id = await getUserId()
-        let endpoint = '';
-        let body = { created_by: user_id };
 
-        if (currentLevel === 'standards') {
-            endpoint = '/standards/';
-            body.standard_name = name;
-        } else if (currentLevel === 'subjects' && selectedStandard) {
-            endpoint = '/subjects/';
-            body.subject_name = name;
-            body.standard_id = selectedStandard;
-        } else if (currentLevel === 'chapters' && selectedSubject) {
-            endpoint = '/chapters/';
-            body.chapter_name = name;
-            body.subject_id = selectedSubject;
-        } else {
-            Alert.alert('Error', 'Missing required selection.');
-            return;
+        let endpoint = '';
+        let body = {};
+
+        switch (currentLevel) {
+            case 'standards':
+                endpoint = '/standards/';
+                body = { standard_name: name };
+                break;
+            case 'subjects':
+                endpoint = '/subjects/';
+                body = { subject_name: name, standard_id: selectedStandard.id };
+                break;
+            case 'chapters':
+                endpoint = '/chapters/';
+                body = { chapter_name: name, subject_id: selectedSubject.id };
+                break;
+            default:
+                return;
         }
 
         try {
-            postApi(endpoint, body).then((res) => {
-                if (res.status === 'success') {
-                    setIsLoading(false)
-                    setName('');
-                    onClose();
-                    refreshData();
-                } else {
-
-                }
-            }).finally(() => { setIsLoading(false) })
+            const response = await postApi(endpoint, body);
+            if (response.status === 'success') {
+                Toast.show({
+                    type: 'success',
+                    position: 'top',
+                    text1: 'Success',
+                    text2: `${currentLevel.slice(0, -1)} added successfully`,
+                });
+                setName('');
+                onClose();
+                refreshData();
+            } else {
+                Toast.show({
+                    type: 'error',
+                    position: 'top',
+                    text1: 'Error',
+                    text2: response.message || 'Something went wrong',
+                });
+            }
         } catch (error) {
-            Alert.alert('Error', 'Something went wrong.');
+            Toast.show({
+                type: 'error',
+                position: 'top',
+                text1: 'Error',
+                text2: 'Something went wrong',
+            });
         }
     };
 
     return (
-        <Modal transparent visible={visible} animationType="slide">
-            <View style={styles.modalContainer}>
+        <Modal
+            visible={visible}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={onClose}
+        >
+            <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
-                    <Text style={styles.header}>Add {getTitle()}</Text>
-                    <TouchableOpacity
-                        style={[styles.cancelButton, isLoading && styles.disabled]}
-                        disabled={isLoading}
-                        onPress={onClose}
-                    >
-                        <Image source={require("../../assets/cancel.png")} style={styles.cancelButtonImage} />
-                    </TouchableOpacity>
-
-                    <View style={styles.separator} />
-
-                    <View style={styles.body}>
-                        <TextInput
-                            style={styles.input}
-                            placeholder={`Enter ${getTitle()} name`}
-                            placeholderTextColor="gray"
-                            value={name}
-                            onChangeText={setName}
-                            editable={!isLoading}
-                        />
-                    </View>
-
-                    <View style={styles.separator} />
-
-                    <View style={styles.footer}>
-                        <TouchableOpacity
-                            style={[styles.button, isLoading && styles.disabled]}
-                            onPress={handleSubmit}
-                            disabled={isLoading}
-                        >
-                            <Text style={styles.buttonText}>Add</Text>
+                    <Text style={styles.title}>Add {currentLevel.slice(0, -1)}</Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder={`Enter ${currentLevel.slice(0, -1)} name`}
+                        placeholderTextColor={colors.text.light}
+                        value={name}
+                        onChangeText={setName}
+                    />
+                    <View style={styles.buttonContainer}>
+                        <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
+                            <Text style={styles.buttonText}>Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={[styles.button, styles.submitButton]} onPress={handleSubmit}>
+                            <Text style={[styles.buttonText, styles.submitButtonText]}>Submit</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
             </View>
-            <Toast />
         </Modal>
     );
 };
 
 const styles = StyleSheet.create({
-    modalContainer: {
+    modalOverlay: {
         flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     modalContent: {
-        width: width * 0.85,
-        backgroundColor: "#fff",
-        borderRadius: 10,
-        elevation: 5,
-        // padding: 20,
+        width: '90%',
+        backgroundColor: colors.background.secondary,
+        borderRadius: borderRadius.lg,
+        padding: spacing.xl,
+        ...shadows.lg,
     },
-    header: {
-        fontSize: 18,
-        fontWeight: "bold",
-        // textAlign: "center",
-        // marginBottom: 10,
-        padding: 15
-    },
-    cancelButton: {
-        position: "absolute",
-        top: 13,
-        right: 13,
-        width: 24,
-        height: 24,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    cancelButtonImage: {
-        width: 20,
-        height: 20,
-    },
-    separator: {
-        height: 1,
-        backgroundColor: "gray",
-        width: "100%",
-        // marginVertical: 10,
-    },
-    body: {
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        // alignItems: "center",
-    },
-    bold: {
-        fontWeight: "bold",
-        fontSize: 25
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: "bold",
-        marginTop: 7,
+    title: {
+        ...typography.h3,
+        color: colors.text.primary,
+        marginBottom: spacing.lg,
+        textAlign: 'center',
     },
     input: {
-        borderWidth: 1,
-        borderColor: "gray",
-        borderRadius: 5,
-        padding: 8,
-        fontSize: 14,
-        color: "black",
-        width: "100%",
-        marginTop: 8,
+        ...commonStyles.input,
+        marginBottom: spacing.lg,
+        backgroundColor: colors.background.accent,
+        borderColor: colors.text.light,
+        color: colors.text.primary,
     },
-    footer: {
-        flexDirection: "row",
-        justifyContent:'flex-end',
-        padding: 15,
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: spacing.md,
     },
     button: {
-        backgroundColor: "#fff",
-        borderRadius: 5,
-        shadowColor: "#000",
-        shadowOpacity: 0.25,
-        shadowRadius: 3,
-        elevation: 3,
-        width: "40%",
-        height: 40,
-        alignItems: "center",
-        justifyContent: "center",
+        flex: 1,
+        padding: spacing.md,
+        borderRadius: borderRadius.md,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    cancelButton: {
+        backgroundColor: colors.background.accent,
+    },
+    submitButton: {
+        backgroundColor: colors.primary,
     },
     buttonText: {
-        color: "black",
-        fontWeight: "500",
-        fontSize: 14,
+        ...typography.body,
+        color: colors.text.primary,
+        fontWeight: '600',
     },
-    disabled: {
-        backgroundColor: "lightgray",
+    submitButtonText: {
+        color: colors.text.white,
     },
 });
 

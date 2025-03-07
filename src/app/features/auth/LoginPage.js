@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { RadioButton } from 'react-native-paper'; // Import RadioButton
 import { postApi } from '../../../services/api';
@@ -17,6 +18,9 @@ import { useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import versionInfo from './../../../../version.json';
+import { colors, spacing, shadows, typography, borderRadius, commonStyles } from '../../theme/theme';
+
+const { width, height } = Dimensions.get('window');
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -190,72 +194,83 @@ const LoginPage = () => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background.primary,
   },
   image: {
     width: '100%',
-    height: 300,
+    height: height * 0.35,
     resizeMode: 'cover',
   },
   loginBox: {
-    marginTop: -30,
-    padding: 20,
-    backgroundColor: '#ffffff',
-    borderRadius: 40,
+    marginTop: -spacing.xl,
+    padding: spacing.xl,
+    backgroundColor: colors.background.primary,
+    borderTopLeftRadius: borderRadius.xl,
+    borderTopRightRadius: borderRadius.xl,
+    ...shadows.lg,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1E90FF',
+    ...typography.h2,
+    color: colors.primary,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: spacing.xl,
   },
   label: {
-    fontSize: 16,
-    color: '#333333',
-    marginBottom: 8,
+    ...typography.body,
+    color: colors.text.secondary,
+    marginBottom: spacing.xs,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#cccccc',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 16,
-    marginBottom: 8,
-    backgroundColor: '#f9f9f9',
+    ...commonStyles.input,
+    marginBottom: spacing.md,
+    color: colors.text.primary,
   },
   radioGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: spacing.md,
   },
   radioButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 15,
+    marginRight: spacing.lg,
   },
   button: {
-    backgroundColor: '#1E90FF',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 10,
+    ...commonStyles.button.primary,
+    paddingVertical: spacing.md,
+    marginVertical: spacing.lg,
   },
   buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
+    ...typography.body,
+    color: colors.text.white,
     fontWeight: '600',
   },
   linkText: {
+    ...typography.body,
     textAlign: 'center',
-    color: '#000000', // Changed to black
-    marginTop: 10,
+    color: colors.text.secondary,
+  },
+  linkTextHighlight: {
+    color: colors.primary,
+    fontWeight: '600',
   },
   errorText: {
-    color: 'red',
-    fontSize: 14,
-    // textAlign: 'center',
-    marginBottom: 10,
+    ...typography.caption,
+    color: colors.error,
+    textAlign: 'center',
+    marginTop: spacing.xs,
+  },
+  versionText: {
+    ...typography.caption,
+    color: colors.text.light,
+    textAlign: 'center',
+    marginTop: spacing.xl,
+  },
+  companyText: {
+    ...typography.caption,
+    color: colors.text.light,
+    textAlign: 'center',
+    marginTop: spacing.xs,
   },
 });
 

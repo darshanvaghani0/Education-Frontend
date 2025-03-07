@@ -12,6 +12,7 @@ import { LogBox } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { isTeacher } from '../auth/user_data';
 import AddMaterialModal from '../../Modal/AddMaterialModal';
+import { colors, spacing, shadows, typography, borderRadius } from '../../theme/theme';
 
 LogBox.ignoreLogs(['file:// exposed beyond app']);
 
@@ -139,7 +140,7 @@ const ChapterPDFScreen = () => {
                             </TouchableOpacity>
                         ))}
                         {isUserTeacher && (
-                            <TouchableOpacity style={[styles.folderCard,{backgroundColor:'#D3D3D3',borderWidth:1,borderStyle: 'dashed',}]} onPress={() => setIsModalVisible(true)}>
+                            <TouchableOpacity style={[styles.folderCard, styles.folderCardAdd]} onPress={() => setIsModalVisible(true)}>
                                 <Image source={require('../../../assets/add-file.png')} style={styles.folderIcon} />
                                 <Text style={styles.folderText}>Add Material</Text>
                             </TouchableOpacity>
@@ -158,32 +159,58 @@ const ChapterPDFScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f5f5f5' },
-    loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    listContainer: { padding: 15, alignItems: 'center' },
+    container: { 
+        flex: 1, 
+        backgroundColor: colors.background.primary 
+    },
+    loaderContainer: { 
+        flex: 1, 
+        justifyContent: 'center', 
+        alignItems: 'center' 
+    },
+    listContainer: { 
+        padding: spacing.lg,
+    },
     rowContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'space-between',
-        padding:10
+        padding: spacing.md,
     },
     folderCard: {
         width: '47%',
-        backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 20,
+        backgroundColor: colors.background.secondary,
+        borderRadius: borderRadius.lg,
+        padding: spacing.lg,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 15,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 4,
+        marginBottom: spacing.md,
+        ...shadows.md,
     },
-    folderIcon: { width: 50, height: 50, marginBottom: 10 },
-    folderText: { fontSize: 16, fontWeight: '500', color: 'black', textAlign: 'center' },
-    noDataText: { fontSize: 18, color: 'gray', textAlign: 'center', marginTop: 20 },
+    folderCardAdd: {
+        backgroundColor: colors.background.accent,
+        borderWidth: 1,
+        borderStyle: 'dashed',
+        borderColor: colors.primary,
+    },
+    folderIcon: { 
+        width: 50, 
+        height: 50, 
+        marginBottom: spacing.md,
+        tintColor: colors.primary,
+    },
+    folderText: { 
+        ...typography.body,
+        color: colors.text.primary, 
+        textAlign: 'center',
+        fontWeight: '500',
+    },
+    noDataText: { 
+        ...typography.h3,
+        color: colors.text.secondary, 
+        textAlign: 'center', 
+        marginTop: spacing.xl,
+    },
 });
 
 export default ChapterPDFScreen;
