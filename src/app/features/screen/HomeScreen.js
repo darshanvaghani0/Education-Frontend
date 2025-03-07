@@ -1,6 +1,6 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { FlatList, View, Text, TouchableOpacity, StyleSheet, Image, Dimensions, BackHandler, Alert } from 'react-native';
+import { FlatList, View, Text, TouchableOpacity, StyleSheet, Image, Dimensions, BackHandler, Alert, TextInput } from 'react-native';
 import CustomHeader from '../CustomHeader';
 import { get } from '../../../services/api';
 import { isTeacher } from '../auth/user_data';
@@ -9,13 +9,28 @@ import Toast from 'react-native-toast-message';
 
 const { width } = Dimensions.get('window');
 
-const Button = ({ onPress, text }) => (
-  <TouchableOpacity style={styles.button} onPress={onPress}>
-    <Image style={styles.iconLeft} source={require('../../../assets/clipboard.png')} />
-    <Text style={styles.buttonText}>{text}</Text>
-    <Image style={styles.iconRight} source={require('../../../assets/right.png')} />
-  </TouchableOpacity>
-);
+const Button = ({ onPress, text, currentLevel }) => {
+  const getIcon = () => {
+    switch (currentLevel) {
+      case 'standards':
+        return require('../../../assets/clipboard.png');
+      case 'subjects':
+        return require('../../../assets/books.png');
+      case 'chapters':
+        return require('../../../assets/chapter.png');
+      default:
+        return require('../../../assets/clipboard.png');
+    }
+  };
+
+  return (
+    <TouchableOpacity style={styles.button} onPress={onPress}>
+      <Image style={styles.iconLeft} source={getIcon()} />
+      <Text style={styles.buttonText}>{text}</Text>
+      <Image style={styles.iconRight} source={require('../../../assets/right.png')} />
+    </TouchableOpacity>
+  );
+};
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -26,7 +41,8 @@ const HomeScreen = () => {
   const [selectedStandard, setSelectedStandard] = useState(null);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [isUserTeacher, setIsUserTeacher] = useState(false)
+  const [isUserTeacher, setIsUserTeacher] = useState(false);
+  const [searchText, setSearchText] = useState('');
 
   useFocusEffect(
     useCallback(() => {
@@ -68,7 +84,7 @@ const HomeScreen = () => {
 
   const fetchStandards = async () => {
     try {
-      get('/standards/').then((response) => {
+      get(`/standards/`, { search_string: searchText }).then((response) => {
         if (response.status === 'success') {
           setData(response.data);
           setCurrentLevel('standards');
@@ -81,13 +97,13 @@ const HomeScreen = () => {
 
   const fetchSubjects = async (standard) => {
     try {
-      get(`/subjects/${standard.id}`).then((response) => {
+      get(`/subjects/${standard.id}`, { search_string: searchText }).then((response) => {
         if (response.status === 'success') {
           setData(response.data);
           setCurrentLevel('subjects');
           setSelectedStandard(standard);
         } else {
-          if(isUserTeacher){
+          if (isUserTeacher) {
             setData([]);
             setCurrentLevel('subjects');
             setSelectedStandard(standard);
@@ -107,13 +123,13 @@ const HomeScreen = () => {
 
   const fetchChapters = async (subject) => {
     try {
-      get(`/chapters/${subject.id}`).then((response) => {
+      get(`/chapters/${subject.id}`, { search_string: searchText }).then((response) => {
         if (response.status === 'success') {
           setData(response.data);
           setCurrentLevel('chapters');
           setSelectedSubject(subject);
         } else {
-          if(isUserTeacher){
+          if (isUserTeacher) {
             setData([]);
             setCurrentLevel('chapters');
             setSelectedStandard(subject);
@@ -131,8 +147,15 @@ const HomeScreen = () => {
     }
   };
 
-  console.log('darshan',selectedStandard)
-
+  const handleSearch = () => {
+    if (currentLevel === 'standards') {
+      fetchStandards();
+    } else if (currentLevel === 'subjects' && selectedStandard) {
+      fetchSubjects(selectedStandard);
+    } else if (currentLevel === 'chapters' && selectedSubject) {
+      fetchChapters(selectedSubject);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -142,35 +165,56 @@ const HomeScreen = () => {
         onBackPress={handleBackPress}
         profileVisible={true}
       />
-      <FlatList
-        data={data}
-        keyExtractor={(item) => item.id.toString()}
-        ListHeaderComponent = {
-          <Text style={styles.headerText}>{currentLevel === 'standards' ? 'Select Standard' : currentLevel === 'subjects' ? 'Select Subject' : 'Select Chapter'}</Text>
-        }
-        renderItem={({ item }) => (
-          <Button
-            onPress={() => {
-              if (currentLevel === 'standards') {
-                fetchSubjects(item);
-              } else if (currentLevel === 'subjects') {
-                fetchChapters(item);
-              } else {
-                navigation.navigate('ChapterDetails', { chapterId: item.id });
-              }
-            }}
-            text={item.subject_name || item.standard_name || item.chapter_name} // Handle different API responses
+
+      <Text style={styles.headerText}>{currentLevel === 'standards' ? 'Select Standard' : currentLevel === 'subjects' ? 'Select Subject' : 'Select Chapter'}</Text>
+      <View style={styles.searchContainer}>
+        <View style={styles.searchInputContainer}>
+          <Image 
+            source={require('../../../assets/search.png')}
+            style={styles.searchIcon}
           />
-        )}
-        contentContainerStyle={styles.listContent}
-        ListFooterComponent={
-          isUserTeacher && (
-            <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
-              <Text style={styles.addText}>+</Text>
-            </TouchableOpacity>
-          )
-        }
-      />
+          <TextInput
+            style={styles.searchInput}
+            placeholder={`Search ${currentLevel}...`}
+            value={searchText}
+            onChangeText={setSearchText}
+            onSubmitEditing={handleSearch}
+            placeholderTextColor={'#000'}
+          />
+        </View>
+      </View>
+      {data.length > 0 ? (
+        <FlatList
+          data={data}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <Button
+              onPress={() => {
+                if (currentLevel === 'standards') {
+                  fetchSubjects(item);
+                } else if (currentLevel === 'subjects') {
+                  fetchChapters(item);
+                } else {
+                  navigation.navigate('ChapterDetails', { chapterId: item.id });
+                }
+              }}
+              text={item.subject_name || item.standard_name || item.chapter_name}
+              currentLevel={currentLevel}
+            />
+          )}
+          contentContainerStyle={styles.listContent}
+        />
+      ) : (
+        <View style={styles.noDataContainer}>
+          <Text style={styles.noDataText}>No {currentLevel} found</Text>
+        </View>
+      )}
+
+      {isUserTeacher && (
+        <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
+          <Image style={styles.addIcon} source={require('../../../assets/plus.png')} />
+        </TouchableOpacity>
+      )}
 
       {modalVisible && (
         <ConfirmationModal
@@ -194,14 +238,46 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  listContent: {
-    padding: 20,
+  searchContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    alignItems: 'flex-start'
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+  },   
+  searchInput: {
+    height: 40,
+    paddingHorizontal: 10,
+    flex: 1,
+  },
+  searchIcon: {
+    width: 20,
+    height: 20,
+    marginLeft: 10,
+  },
+  listContent: {
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
+  noDataContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noDataText: {
+    fontSize: 18,
+    color: '#666',
   },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 15,
+    padding: 20,
     backgroundColor: 'white',
     borderRadius: 10,
     marginVertical: 10,
@@ -214,21 +290,23 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: 'black',
-    fontSize: 18,
+    fontSize: 20,
     flex: 1,
     textAlign: 'left',
     fontWeight: '500',
   },
-  headerText:{
+  headerText: {
     color: 'black',
-    fontSize: 18,
+    fontSize: 25,
     textAlign: 'left',
     fontWeight: '500',
+    paddingLeft: 20,
+    paddingTop: 20,
   },
   iconLeft: {
     marginRight: 15,
-    width: 25,
-    height: 25,
+    width: 30,
+    height: 30,
   },
   iconRight: {
     marginLeft: 10,
@@ -236,16 +314,26 @@ const styles = StyleSheet.create({
     height: 20,
   },
   addButton: {
-    backgroundColor: 'green',
-    width: 45,
-    height: 45,
+    backgroundColor: 'white',
+    width: 60,
+    height: 60,
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 10,
-    alignSelf: 'center',
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
   },
-  addText: { fontSize: 25, color: 'white', fontWeight: 'bold' },
+  addIcon: {
+    width: 30,
+    height: 30,
+    tintColor: '#4CAF50'
+  }
 });
 
 export default HomeScreen;

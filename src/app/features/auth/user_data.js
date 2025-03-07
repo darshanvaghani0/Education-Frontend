@@ -36,15 +36,20 @@ export const isAdmin = async () => {
 };
 
 // Get user ID (for API requests)
-export const getUserId = async () => {
-  const user = await getUser();
-  return user?.response?.data?.id || null;
-};
+  export const getUserId = async () => {
+    const user = await getUser();
+    return user?.response?.data?.id || null;
+  };
 
 // Get authentication token
 export const getToken = async () => {
   const user = await getUser();
   return user?.response?.data?.access_token || null;
+};
+
+export const getUserName = async () => {
+  const user = await getUser();
+  return user?.response?.data?.name || null;
 };
 
 // Logout function

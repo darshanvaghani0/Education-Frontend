@@ -2,112 +2,143 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, Modal, Dimensions } from 'react-native';
-import { isAdmin } from './auth/user_data';
+import { getUserName, isAdmin } from './auth/user_data';
 
 const { width, height } = Dimensions.get('window');
 
-const CustomHeader = ({ title, onBackPress, backButtonVisible, profileVisible, profileImage, viewProfileIcon, logoutIcon }) => {
+const CustomHeader = ({ title, onBackPress, backButtonVisible, profileVisible }) => {
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [isUserAdmin, setIsUserAdmin] = useState(false)
+    const [isUserAdmin, setIsUserAdmin] = useState(false);
+    const [userName, setUserName] = useState('');
     const navigation = useNavigation();
 
     useEffect(() => {
-        const initializeData = async () => {
+        const checkAdminStatus = async () => {
             const adminStatus = await isAdmin();
             setIsUserAdmin(adminStatus);
+            const userName = await getUserName();
+            setUserName(userName);
         };
-        initializeData();
+        checkAdminStatus();
     }, []);
 
-    const handleViewProfile = () => {
-        console.log('View Profile clicked!');
-    };
+    const menuOptions = [
+        {
+            id: 'profile',
+            title: 'View Profile',
+            icon: require('./../../assets/person.png'),
+            onPress: () => {
+                console.log('View Profile clicked!');
+            }
+        },
+        {
+            id: 'approve',
+            title: 'Approve User',
+            icon: require('./../../assets/tick-inside-circle.png'),
+            onPress: () => navigation.navigate('NewSignUpUser'),
+            adminOnly: true
+        },
+        {
+            id: 'logout',
+            title: 'Logout',
+            icon: require('./../../assets/logout.png'),
+            onPress: async () => {
+                await AsyncStorage.clear();
+                navigation.navigate('Login');
+            }
+        }
+    ];
 
-    const handleApproveUser = () => {
-        navigation.navigate('NewSignUpUser');
-    }
-
-    const handleLogout = () => {
-        console.log('Logout clicked!');
-        AsyncStorage.clear();
-        navigation.navigate('Login');
+    const MenuItem = ({ item }) => {
+        if (item.adminOnly && !isUserAdmin) return null;
+        
+        return (
+            <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                    setIsModalVisible(false);
+                    item.onPress();
+                }}
+            >
+                <Image source={item.icon} style={styles.menuIcon} />
+                <Text style={styles.menuText}>{item.title}</Text>
+            </TouchableOpacity>
+        );
     };
 
     return (
-        <>
-            <View style={styles.headerContainer}>
-                <View style={styles.backButtonHeader}>
-                    {backButtonVisible &&
+        <View style={styles.container}>
+            <View style={styles.header}>
+                <View style={styles.leftSection}>
+                    {backButtonVisible && (
                         <TouchableOpacity onPress={onBackPress} style={styles.backButton}>
-                            <Image source={require('./../../assets/left.png')} style={styles.backImage} />
+                            <Image 
+                                source={require('./../../assets/left.png')} 
+                                style={styles.backIcon} 
+                            />
                         </TouchableOpacity>
-                    }
-                    <Text style={styles.headerTitle}>{title}</Text>
+                    )}
+                    <Text style={styles.title}>{title}</Text>
                 </View>
-                {profileVisible &&
+                {profileVisible && (
                     <TouchableOpacity
                         onPress={() => setIsModalVisible(true)}
-                        style={styles.profileImageContainer}
+                        style={styles.profileButton}
                     >
-                        <Image source={require('./../../assets/person.png')} style={styles.profileImage} />
+                        <Image 
+                            source={require('./../../assets/person.png')} 
+                            style={styles.profileIcon} 
+                        />
                     </TouchableOpacity>
-                }
+                )}
             </View>
 
             <Modal
                 transparent={true}
                 visible={isModalVisible}
                 onRequestClose={() => setIsModalVisible(false)}
+                animationType="fade"
             >
                 <TouchableOpacity
                     style={styles.modalOverlay}
+                    activeOpacity={1}
                     onPress={() => setIsModalVisible(false)}
                 >
-                    <View style={styles.modalContent}>
-                        <TouchableOpacity
-                            style={styles.option}
-                            onPress={() => {
-                                setIsModalVisible(false);
-                                handleViewProfile();
-                            }}
-                        >
-                            <Image source={require('./../../assets/person.png')} style={styles.optionIcon} />
-                            <Text style={styles.optionText}>View Profile</Text>
-                        </TouchableOpacity>
-
-                        {isUserAdmin && (
-                            <TouchableOpacity
-                                style={styles.option}
-                                onPress={() => {
-                                    setIsModalVisible(false);
-                                handleApproveUser();
-                            }}
-                        >
-                            <Image source={require('./../../assets/tick-inside-circle.png')} style={styles.optionIcon} />
-                                <Text style={styles.optionText}>Approve User</Text>
-                            </TouchableOpacity>
-                        )}
-
-                        <TouchableOpacity
-                            style={styles.option}
-                            onPress={() => {
-                                setIsModalVisible(false);
-                                handleLogout();
-                            }}
-                        >
-                            <Image source={require('./../../assets/logout.png')} style={styles.optionIcon} />
-                            <Text style={styles.optionText}>Logout</Text>
-                        </TouchableOpacity>
+                    <View style={styles.menuContainer}>
+                        <View style={styles.profileSection}>
+                            <Text style={styles.userName}>{userName}</Text>
+                            <Image 
+                                source={require('./../../assets/boy.png')}
+                                style={styles.profileImage}
+                            />
+                            {/* <View style={styles.buttonContainer}>
+                                <TouchableOpacity style={styles.profileActionButton}>
+                                    <Text style={styles.buttonText}>Edit Profile</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.profileActionButton}>
+                                    <Text style={styles.buttonText}>Settings</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.profileActionButton}>
+                                    <Text style={styles.buttonText}>Help</Text>
+                                </TouchableOpacity>
+                            </View> */}
+                        </View>
+                        <View style={styles.divider} />
+                        {menuOptions.map(item => (
+                            <MenuItem key={item.id} item={item} />
+                        ))}
                     </View>
                 </TouchableOpacity>
             </Modal>
-
-        </>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
-    headerContainer: {
+    container: {
+        width: '100%',
+    },
+    header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -115,65 +146,117 @@ const styles = StyleSheet.create({
         height: height * 0.08,
         backgroundColor: 'white',
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 6,
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
         elevation: 5,
     },
-    backButtonHeader: {
+    leftSection: {
         flexDirection: 'row',
+        alignItems: 'center',
     },
     backButton: {
-        padding: 5,
+        padding: 8,
+        marginRight: 8,
     },
-    backImage: {
+    backIcon: {
         width: width * 0.05,
         height: width * 0.05,
     },
-    headerTitle: {
-        color: 'black',
-        fontSize: width * 0.045,
-        fontWeight: 'bold',
-        padding: 3
+    title: {
+        fontSize: 20,
+        fontWeight: '600',
+        color: '#1a1a1a',
     },
-    profileImageContainer: {
+    profileButton: {
         width: width * 0.1,
         height: width * 0.1,
+        borderRadius: width * 0.05,
         overflow: 'hidden',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    profileImage: {
+    profileIcon: {
         width: '100%',
         height: '100%',
     },
     modalOverlay: {
         flex: 1,
-        justifyContent: 'flex-start',
-        alignItems: 'flex-end', 
-        paddingTop: 20, 
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
-    modalContent: {
-        width: '40%',
-        backgroundColor: '#F0F0F0',
-        padding: 5,
-        marginTop: height * 0.054,
-        borderColor: 'black',
-        borderRadius: 10,
-        marginRight: 5
+    menuContainer: {
+        position: 'absolute',
+        right: 0,
+        width: 250,
+        height: '100%',
+        backgroundColor: 'white',
+        borderRadius: 12,
+        padding: 16,
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
     },
-    option: {
+    profileSection: {
+        alignItems: 'center',
+        paddingVertical: 16,
+    },
+    userName: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#1a1a1a',
+        marginBottom: 12,
+    },
+    profileImage: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        marginBottom: 16,
+    },
+    buttonContainer: {
+        width: '100%',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 8,
+    },
+    profileActionButton: {
+        backgroundColor: '#f0f0f0',
+        padding: 8,
+        borderRadius: 8,
+        minWidth: 80,
+        alignItems: 'center',
+    },
+    buttonText: {
+        fontSize: 14,
+        color: '#1a1a1a',
+    },
+    divider: {
+        height: 1,
+        backgroundColor: '#e0e0e0',
+        marginVertical: 8,
+    },
+    menuItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 5,
+        padding: 12,
+        borderRadius: 8,
     },
-    optionIcon: {
-        width: 22,
-        height: 22,
+    menuIcon: {
+        width: 24,
+        height: 24,
     },
-    optionText: {
-        marginLeft: 10,
-        fontSize: 14,
-        color: '#333',
-    },
+    menuText: {
+        marginLeft: 12,
+        fontSize: 16,
+        color: '#1a1a1a',
+    }
 });
 
 export default CustomHeader;
