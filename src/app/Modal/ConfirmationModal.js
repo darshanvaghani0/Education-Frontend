@@ -1,11 +1,21 @@
-import React, { useState } from 'react';
-import { View, Text, Modal, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, Modal, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { postApi } from '../../services/api';
 import Toast from 'react-native-toast-message';
 import { colors, spacing, shadows, typography, borderRadius, commonStyles } from '../theme/theme';
 
 const ConfirmationModal = ({ visible, onClose, currentLevel, selectedStandard, selectedSubject, refreshData }) => {
     const [name, setName] = useState('');
+    const inputRef = useRef(null);
+
+    useEffect(() => {
+        if (visible && inputRef.current) {
+            // Small delay to ensure the modal is fully visible
+            setTimeout(() => {
+                inputRef.current.focus();
+            }, 100);
+        }
+    }, [visible]);
 
     const handleSubmit = async () => {
         if (!name.trim()) {
@@ -68,6 +78,19 @@ const ConfirmationModal = ({ visible, onClose, currentLevel, selectedStandard, s
         }
     };
 
+    const getIcon = () => {
+        switch (currentLevel) {
+            case 'standards':
+                return require('../../assets/clipboard.png');
+            case 'subjects':
+                return require('../../assets/books.png');
+            case 'chapters':
+                return require('../../assets/chapter.png');
+            default:
+                return require('../../assets/clipboard.png');
+        }
+    };
+
     return (
         <Modal
             visible={visible}
@@ -77,19 +100,44 @@ const ConfirmationModal = ({ visible, onClose, currentLevel, selectedStandard, s
         >
             <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
-                    <Text style={styles.title}>Add {currentLevel.slice(0, -1)}</Text>
+                    <View style={styles.header}>
+                        <Image source={getIcon()} style={styles.headerIcon} />
+                        <Text style={styles.title}>Add New {currentLevel.slice(0, -1)}</Text>
+                    </View>
+
+                    <View style={styles.divider} />
+
+                    <Text style={styles.label}>{currentLevel.slice(0, -1).charAt(0).toUpperCase() + currentLevel.slice(0, -1).slice(1)} name</Text>
                     <TextInput
+                        ref={inputRef}
                         style={styles.input}
                         placeholder={`Enter ${currentLevel.slice(0, -1)} name`}
                         placeholderTextColor={colors.text.light}
                         value={name}
                         onChangeText={setName}
+                        returnKeyType="done"
+                        onSubmitEditing={handleSubmit}
                     />
+
                     <View style={styles.buttonContainer}>
-                        <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
-                            <Text style={styles.buttonText}>Cancel</Text>
+                        <TouchableOpacity 
+                            style={[styles.button, styles.cancelButton]} 
+                            onPress={onClose}
+                        >
+                            <Image 
+                                source={require('../../assets/cancel.png')} 
+                                style={[styles.buttonIcon, styles.cancelIcon]} 
+                            />
+                            <Text style={[styles.buttonText, styles.cancelButtonText]}>Cancel</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={[styles.button, styles.submitButton]} onPress={handleSubmit}>
+                        <TouchableOpacity 
+                            style={[styles.button, styles.submitButton]} 
+                            onPress={handleSubmit}
+                        >
+                            <Image 
+                                source={require('../../assets/tick-inside-circle.png')} 
+                                style={[styles.buttonIcon, styles.submitIcon]} 
+                            />
                             <Text style={[styles.buttonText, styles.submitButtonText]}>Submit</Text>
                         </TouchableOpacity>
                     </View>
@@ -102,41 +150,82 @@ const ConfirmationModal = ({ visible, onClose, currentLevel, selectedStandard, s
 const styles = StyleSheet.create({
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
         justifyContent: 'center',
         alignItems: 'center',
     },
     modalContent: {
-        width: '90%',
+        width: '85%',
         backgroundColor: colors.background.secondary,
         borderRadius: borderRadius.lg,
-        padding: spacing.xl,
+        padding: 0,
         ...shadows.lg,
     },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: spacing.md,
+        backgroundColor: colors.background.accent,
+        borderTopLeftRadius: borderRadius.lg,
+        borderTopRightRadius: borderRadius.lg,
+    },
+    headerIcon: {
+        width: 24,
+        height: 24,
+        marginRight: spacing.sm,
+        tintColor: colors.primary,
+    },
     title: {
-        ...typography.h3,
+        fontSize: 16,
+        fontWeight: '600',
         color: colors.text.primary,
-        marginBottom: spacing.lg,
-        textAlign: 'center',
+        flex: 1,
+    },
+    divider: {
+        height: 1,
+        backgroundColor: colors.background.accent,
+    },
+    label: {
+        fontSize: 14,
+        color: colors.text.secondary,
+        marginBottom: spacing.xs,
+        marginTop: spacing.md,
+        paddingHorizontal: spacing.md,
     },
     input: {
-        ...commonStyles.input,
-        marginBottom: spacing.lg,
+        marginHorizontal: spacing.md,
         backgroundColor: colors.background.accent,
-        borderColor: colors.text.light,
+        borderRadius: borderRadius.md,
+        padding: spacing.sm,
+        paddingHorizontal: spacing.md,
         color: colors.text.primary,
+        borderWidth: 1,
+        borderColor: colors.text.light,
+        fontSize: 14,
+        height: 40,
     },
     buttonContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: spacing.md,
+        padding: spacing.md,
+        gap: spacing.sm,
+        borderTopWidth: 1,
+        borderTopColor: colors.background.accent,
+        marginTop: spacing.lg,
     },
     button: {
         flex: 1,
-        padding: spacing.md,
+        flexDirection: 'row',
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.md,
         borderRadius: borderRadius.md,
         alignItems: 'center',
         justifyContent: 'center',
+        height: 36,
+    },
+    buttonIcon: {
+        width: 16,
+        height: 16,
+        marginRight: spacing.xs,
     },
     cancelButton: {
         backgroundColor: colors.background.accent,
@@ -145,12 +234,20 @@ const styles = StyleSheet.create({
         backgroundColor: colors.primary,
     },
     buttonText: {
-        ...typography.body,
-        color: colors.text.primary,
+        fontSize: 14,
         fontWeight: '600',
+    },
+    cancelButtonText: {
+        color: colors.text.primary,
     },
     submitButtonText: {
         color: colors.text.white,
+    },
+    cancelIcon: {
+        tintColor: colors.text.primary,
+    },
+    submitIcon: {
+        tintColor: colors.text.white,
     },
 });
 

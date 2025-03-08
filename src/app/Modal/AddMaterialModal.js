@@ -109,37 +109,69 @@ const AddMaterialModal = ({ visible, onClose, chapterId, onUploadSuccess }) => {
         >
             <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
-                    <Text style={styles.title}>Add PDF Material</Text>
-                    
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Enter PDF name"
-                        placeholderTextColor={colors.text.light}
-                        value={pdfName}
-                        onChangeText={setPdfName}
-                    />
+                    <View style={styles.header}>
+                        <Image 
+                            source={require('../../assets/pdf.png')} 
+                            style={styles.headerIcon} 
+                        />
+                        <Text style={styles.title}>Add PDF Material</Text>
+                    </View>
 
-                    <TouchableOpacity 
-                        style={styles.fileButton} 
-                        onPress={pickDocument}
-                    >
-                        <Text style={styles.fileButtonText}>
-                            {selectedFile ? selectedFile.name : 'Select PDF File'}
-                        </Text>
-                    </TouchableOpacity>
+                    <View style={styles.divider} />
+
+                    <View style={styles.form}>
+                        <Text style={styles.label}>PDF Name</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Enter PDF name"
+                            placeholderTextColor={colors.text.light}
+                            value={pdfName}
+                            onChangeText={setPdfName}
+                        />
+
+                        <Text style={styles.label}>PDF File</Text>
+                        <TouchableOpacity 
+                            style={styles.fileButton} 
+                            onPress={pickDocument}
+                        >
+                            <Image 
+                                source={require('../../assets/upload.png')} 
+                                style={styles.uploadIcon} 
+                            />
+                            <Text style={styles.fileButtonText}>
+                                {selectedFile ? selectedFile.name : 'Select PDF File'}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
 
                     <View style={styles.buttonContainer}>
                         <TouchableOpacity 
                             style={[styles.button, styles.cancelButton]} 
                             onPress={onClose}
+                            disabled={uploading}
                         >
-                            <Text style={styles.buttonText}>Cancel</Text>
+                            <Image 
+                                source={require('../../assets/cancel.png')} 
+                                style={[styles.buttonIcon, styles.cancelIcon]} 
+                            />
+                            <Text style={[styles.buttonText, styles.cancelButtonText]}>Cancel</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
-                            style={[styles.button, styles.submitButton]} 
+                            style={[styles.button, styles.submitButton, uploading && styles.buttonDisabled]} 
                             onPress={handleSubmit}
+                            disabled={uploading}
                         >
-                            <Text style={[styles.buttonText, styles.submitButtonText]}>Upload</Text>
+                            {uploading ? (
+                                <ActivityIndicator color={colors.text.white} />
+                            ) : (
+                                <>
+                                    <Image 
+                                        source={require('../../assets/upload.png')} 
+                                        style={[styles.buttonIcon, styles.submitIcon]} 
+                                    />
+                                    <Text style={[styles.buttonText, styles.submitButtonText]}>Upload</Text>
+                                </>
+                            )}
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -151,55 +183,106 @@ const AddMaterialModal = ({ visible, onClose, chapterId, onUploadSuccess }) => {
 const styles = StyleSheet.create({
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
         justifyContent: 'center',
         alignItems: 'center',
     },
     modalContent: {
-        width: '90%',
+        width: '85%',
         backgroundColor: colors.background.secondary,
         borderRadius: borderRadius.lg,
-        padding: spacing.xl,
+        padding: 0,
         ...shadows.lg,
     },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: spacing.md,
+        backgroundColor: colors.background.accent,
+        borderTopLeftRadius: borderRadius.lg,
+        borderTopRightRadius: borderRadius.lg,
+    },
+    headerIcon: {
+        width: 24,
+        height: 24,
+        marginRight: spacing.sm,
+        tintColor: colors.primary,
+    },
     title: {
-        ...typography.h3,
+        fontSize: 16,
+        fontWeight: '600',
         color: colors.text.primary,
-        marginBottom: spacing.lg,
-        textAlign: 'center',
+        flex: 1,
+    },
+    divider: {
+        height: 1,
+        backgroundColor: colors.background.accent,
+    },
+    form: {
+        padding: spacing.md,
+    },
+    label: {
+        fontSize: 14,
+        color: colors.text.secondary,
+        marginBottom: spacing.xs,
     },
     input: {
-        ...commonStyles.input,
-        marginBottom: spacing.lg,
         backgroundColor: colors.background.accent,
-        borderColor: colors.text.light,
+        borderRadius: borderRadius.md,
+        padding: spacing.sm,
+        paddingHorizontal: spacing.md,
         color: colors.text.primary,
+        borderWidth: 1,
+        borderColor: colors.text.light,
+        fontSize: 14,
+        marginBottom: spacing.md,
+        height: 40,
     },
     fileButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
         backgroundColor: colors.background.accent,
-        padding: spacing.md,
+        padding: spacing.sm,
+        paddingHorizontal: spacing.md,
         borderRadius: borderRadius.md,
-        marginBottom: spacing.lg,
         borderWidth: 1,
         borderColor: colors.text.light,
         borderStyle: 'dashed',
+        marginBottom: spacing.md,
+        height: 40,
+    },
+    uploadIcon: {
+        width: 20,
+        height: 20,
+        marginRight: spacing.sm,
+        tintColor: colors.primary,
     },
     fileButtonText: {
-        ...typography.body,
+        fontSize: 14,
         color: colors.text.primary,
-        textAlign: 'center',
+        flex: 1,
     },
     buttonContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: spacing.md,
+        padding: spacing.md,
+        gap: spacing.sm,
+        borderTopWidth: 1,
+        borderTopColor: colors.background.accent,
     },
     button: {
         flex: 1,
-        padding: spacing.md,
+        flexDirection: 'row',
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.md,
         borderRadius: borderRadius.md,
         alignItems: 'center',
         justifyContent: 'center',
+        height: 36,
+    },
+    buttonIcon: {
+        width: 16,
+        height: 16,
+        marginRight: spacing.xs,
     },
     cancelButton: {
         backgroundColor: colors.background.accent,
@@ -207,13 +290,24 @@ const styles = StyleSheet.create({
     submitButton: {
         backgroundColor: colors.primary,
     },
+    buttonDisabled: {
+        opacity: 0.5,
+    },
     buttonText: {
-        ...typography.body,
-        color: colors.text.primary,
+        fontSize: 14,
         fontWeight: '600',
+    },
+    cancelButtonText: {
+        color: colors.text.primary,
     },
     submitButtonText: {
         color: colors.text.white,
+    },
+    cancelIcon: {
+        tintColor: colors.text.primary,
+    },
+    submitIcon: {
+        tintColor: colors.text.white,
     },
 });
 

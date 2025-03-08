@@ -28,7 +28,7 @@ const LoginPage = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
-  const [userType, setUserType] = useState('Teacher');
+  const [userType, setUserType] = useState('Student');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const navigation = useNavigation();
@@ -47,7 +47,7 @@ const LoginPage = () => {
     setErrorMessage('');
     setName('');
     setEmail('');
-    setUserType('Teacher');
+    setUserType('Student');
   };
 
   const handleLogin = () => {
@@ -135,7 +135,7 @@ const LoginPage = () => {
         <Image style={styles.image} source={require('../../../assets/login-page.jpg')} />
 
         <View style={styles.loginBox}>
-          <Text style={styles.title}>{isSignup ? 'Create an Account' : 'Login to your Account'}</Text>
+          <Text style={styles.title}>{isSignup ? 'Sign Up' : 'Log In'}</Text>
 
           {isSignup && (
             <>
@@ -148,7 +148,7 @@ const LoginPage = () => {
                     status={userType === 'Student' ? 'checked' : 'unchecked'}
                     onPress={() => setUserType('Student')}
                   />
-                  <Text>Student</Text>
+                  <Text style={styles.label}>Student</Text>
                 </View>
 
                 <View style={styles.radioButton}>
@@ -158,7 +158,7 @@ const LoginPage = () => {
                     status={userType === 'Teacher' ? 'checked' : 'unchecked'}
                     onPress={() => setUserType('Teacher')}
                   />
-                  <Text>Teacher</Text>
+                  <Text style={styles.label}>Teacher</Text>
                 </View>
               </View>
 
@@ -183,7 +183,7 @@ const LoginPage = () => {
             setIsSignup(!isSignup);
             resetForm();
           }}>
-            <Text style={styles.linkText}>{isSignup ? 'Already have an account? ' : "Don't have an account? "}<Text style={[styles.linkText, { color: '#1E90FF' }]}>{isSignup ? 'Login' : "Sign up"}</Text></Text>
+            <Text style={styles.linkText}>{isSignup ? 'Already have an account? ' : "Don't have an account? "}<Text style={[styles.linkText, { color: '#1E90FF' }]}>{isSignup ? 'Login' : "Signup"}</Text></Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -207,13 +207,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.primary,
     borderTopLeftRadius: borderRadius.xl,
     borderTopRightRadius: borderRadius.xl,
-    ...shadows.lg,
   },
   title: {
-    ...typography.h2,
+    ...typography.h1,
     color: colors.primary,
     textAlign: 'center',
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
   },
   label: {
     ...typography.body,
@@ -222,13 +221,13 @@ const styles = StyleSheet.create({
   },
   input: {
     ...commonStyles.input,
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
     color: colors.text.primary,
   },
   radioGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   radioButton: {
     flexDirection: 'row',
@@ -237,8 +236,11 @@ const styles = StyleSheet.create({
   },
   button: {
     ...commonStyles.button.primary,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm,
     marginVertical: spacing.lg,
+    width: '50%',
+    alignSelf: 'center',
+    borderRadius: borderRadius.full,
   },
   buttonText: {
     ...typography.body,

@@ -17,7 +17,7 @@ const CustomHeader = ({ title, onBackPress, backButtonVisible, profileVisible })
         const checkAdminStatus = async () => {
             const adminStatus = await isAdmin();
             setIsUserAdmin(adminStatus);
-            const userName = await getUserNamex();
+            const userName = await getUserName();
             setUserName(userName);
         };
         checkAdminStatus();
