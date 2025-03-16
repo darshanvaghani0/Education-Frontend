@@ -11,6 +11,7 @@ import ChapterPDFScreen from './src/app/features/screen/ChapterPDFScreen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import NewSignUpUser from './src/app/features/screen/NewSignUpUser';
 import { colors } from './src/app/theme/theme';
+import PermissionComponent from './src/app/utils/PermissionComponent';
 
 const Stack = createNativeStackNavigator();
 
@@ -92,9 +93,10 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor={colors.background.primary}
+        backgroundColor={colors.background.secondary}
       />
       <SafeAreaView style={styles.container}>
+        <PermissionComponent />
         <NavigationContainer>
           <Stack.Navigator initialRouteName={initialRoute}>
             <Stack.Screen

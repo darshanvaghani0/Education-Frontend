@@ -145,8 +145,8 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         padding: spacing.md,
         height: height * 0.08,
-        backgroundColor: colors.background.primary,
-        ...shadows.md,
+        backgroundColor: colors.background.secondary,
+        ...shadows.lg,
     },
     leftSection: {
         flexDirection: 'row',

@@ -57,9 +57,7 @@ const AddMaterialModal = ({ visible, onClose, chapterId, onUploadSuccess }) => {
         const formData = new FormData();
         const userId = await getUserId();
 
-        formData.append('pdf_name', pdfName);
-        formData.append('chapter_id', chapterId);
-        formData.append('pdf_file', {
+        formData.append('file', {
             uri: selectedFile.uri,
             type: selectedFile.type,
             name: selectedFile.name,

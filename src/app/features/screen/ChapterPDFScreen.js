@@ -148,27 +148,27 @@ const ChapterPDFScreen = () => {
                     </View>
                 </ScrollView>
             )}
-            <AddMaterialModal
+            {isModalVisible && <AddMaterialModal
                 visible={isModalVisible}
                 onClose={() => setIsModalVisible(false)}
                 chapterId={chapterId}
-                onUploadSuccess={fetchChapterPDFs} // Refresh PDF list after upload
-            />
+                onUploadSuccess={fetchChapterPDFs}
+            />}
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { 
-        flex: 1, 
-        backgroundColor: colors.background.primary 
+    container: {
+        flex: 1,
+        backgroundColor: colors.background.primary
     },
-    loaderContainer: { 
-        flex: 1, 
-        justifyContent: 'center', 
-        alignItems: 'center' 
+    loaderContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
     },
-    listContainer: { 
+    listContainer: {
         padding: spacing.lg,
     },
     rowContainer: {
@@ -193,22 +193,22 @@ const styles = StyleSheet.create({
         borderStyle: 'dashed',
         borderColor: colors.primary,
     },
-    folderIcon: { 
-        width: 50, 
-        height: 50, 
+    folderIcon: {
+        width: 50,
+        height: 50,
         marginBottom: spacing.md,
         tintColor: colors.primary,
     },
-    folderText: { 
+    folderText: {
         ...typography.body,
-        color: colors.text.primary, 
+        color: colors.text.primary,
         textAlign: 'center',
         fontWeight: '500',
     },
-    noDataText: { 
+    noDataText: {
         ...typography.h3,
-        color: colors.text.secondary, 
-        textAlign: 'center', 
+        color: colors.text.secondary,
+        textAlign: 'center',
         marginTop: spacing.xl,
     },
 });

@@ -21,6 +21,28 @@ export const get = async (endpoint, params = {}) => {
   }
 };
 
+export const deleteApi = async (endpoint, params = {}) => {
+  try {
+    const queryString = new URLSearchParams(params).toString();
+    const url = `${BASE_URL}${endpoint}?${queryString}`
+    console.log('Request URL:', url.toString());
+
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+    console.log(endpoint, ' api res : ', data)
+    return data
+  } catch (error) {
+    console.error('Error in DELETE request:', error);
+  }
+};
+
+
 export const post = async (endpoint, params = {}) => {
   try {
     const queryString = new URLSearchParams(params).toString();

@@ -1,22 +1,43 @@
 export const colors = {
-  primary: '#818cf8',    // Lighter Indigo
-  secondary: '#f472b6',  // Lighter Pink
-  accent: '#a78bfa',    // Lighter Purple
-  success: '#34d399',   // Lighter Green
-  warning: '#fbbf24',   // Lighter Amber
-  error: '#f87171',     // Lighter Red
+  primary: '#818cf8',
+  secondary: '#f472b6',
+  accent: '#a78bfa',
+  success: '#34d399',
+  warning: '#fbbf24',
+  error: '#f87171',
   background: {
-    primary: '#0f172a',   // Dark Blue
-    secondary: '#1e293b', // Slightly Lighter Dark Blue
-    accent: '#334155',    // Even Lighter Dark Blue
+    primary: '#0f172a',
+    secondary: '#1e293b',
+    accent: '#334155',
   },
   text: {
-    primary: '#f8fafc',   // Almost White
-    secondary: '#cbd5e1',  // Light Gray
-    light: '#64748b',     // Medium Gray
-    white: '#ffffff',     // Pure White
-  }
+    primary: '#f8fafc',
+    secondary: '#cbd5e1',
+    light: '#64748b',
+    white: '#ffffff',
+  },
 };
+
+export const lightTheme = {
+  primary: '#4f46e5',
+  secondary: '#db2777',
+  accent: '#8b5cf6',
+  success: '#10b981',
+  warning: '#f59e0b',
+  error: '#ef4444',
+  background: {
+    primary: '#f8fafc',
+    secondary: '#e2e8f0',
+    accent: '#cbd5e1',
+  },
+  text: {
+    primary: '#1e293b',
+    secondary: '#334155',
+    light: '#64748b',
+    white: '#ffffff',
+  },
+};
+
 
 export const spacing = {
   xs: 4,

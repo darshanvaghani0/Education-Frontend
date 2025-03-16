@@ -1,12 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, Modal, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, Modal, TextInput, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import { postApi } from '../../services/api';
 import Toast from 'react-native-toast-message';
 import { colors, spacing, shadows, typography, borderRadius, commonStyles } from '../theme/theme';
+import { getUserId } from '../features/auth/user_data';
 
 const ConfirmationModal = ({ visible, onClose, currentLevel, selectedStandard, selectedSubject, refreshData }) => {
     const [name, setName] = useState('');
+    const [userId, setUserId] = useState(null);
     const inputRef = useRef(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (visible && inputRef.current) {
@@ -14,6 +17,11 @@ const ConfirmationModal = ({ visible, onClose, currentLevel, selectedStandard, s
             setTimeout(() => {
                 inputRef.current.focus();
             }, 100);
+            const initializeData = async () => {
+                const userId = await getUserId();
+                setUserId(userId);
+            }
+            initializeData();
         }
     }, [visible]);
 
@@ -28,34 +36,22 @@ const ConfirmationModal = ({ visible, onClose, currentLevel, selectedStandard, s
             return;
         }
 
-        let endpoint = '';
-        let body = {};
-
-        switch (currentLevel) {
-            case 'standards':
-                endpoint = '/standards/';
-                body = { standard_name: name };
-                break;
-            case 'subjects':
-                endpoint = '/subjects/';
-                body = { subject_name: name, standard_id: selectedStandard.id };
-                break;
-            case 'chapters':
-                endpoint = '/chapters/';
-                body = { chapter_name: name, subject_id: selectedSubject.id };
-                break;
-            default:
-                return;
-        }
-
+        setIsLoading(true);
         try {
-            const response = await postApi(endpoint, body);
+            let response;
+            if (currentLevel === 'standards') {
+                response = await postApi('/standards/', { standard_name: name, created_by: userId });
+            } else if (currentLevel === 'subjects') {
+                response = await postApi('/subjects/', { subject_name: name, standard_id: selectedStandard.id, created_by: userId });
+            } else if (currentLevel === 'chapters') {
+                response = await postApi('/chapters/', { chapter_name: name, subject_id: selectedSubject.id, created_by: userId });
+            }
+
             if (response.status === 'success') {
                 Toast.show({
                     type: 'success',
                     position: 'top',
-                    text1: 'Success',
-                    text2: `${currentLevel.slice(0, -1)} added successfully`,
+                    text1: `${currentLevel.charAt(0).toUpperCase() + currentLevel.slice(1)} added successfully`,
                 });
                 setName('');
                 onClose();
@@ -64,17 +60,18 @@ const ConfirmationModal = ({ visible, onClose, currentLevel, selectedStandard, s
                 Toast.show({
                     type: 'error',
                     position: 'top',
-                    text1: 'Error',
-                    text2: response.message || 'Something went wrong',
+                    text1: response.data.message || 'Failed to add',
                 });
             }
         } catch (error) {
+            console.error('Error adding item:', error);
             Toast.show({
                 type: 'error',
                 position: 'top',
-                text1: 'Error',
-                text2: 'Something went wrong',
+                text1: 'Error adding item',
             });
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -91,6 +88,32 @@ const ConfirmationModal = ({ visible, onClose, currentLevel, selectedStandard, s
         }
     };
 
+    const getTitle = () => {
+        switch (currentLevel) {
+            case 'standards':
+                return 'Add Standard';
+            case 'subjects':
+                return `Add Subject to ${selectedStandard.standard_name}`;
+            case 'chapters':
+                return `Add Chapter to ${selectedSubject.subject_name}`;
+            default:
+                return 'Add Item';
+        }
+    };
+
+    const getPlaceholder = () => {
+        switch (currentLevel) {
+            case 'standards':
+                return 'Enter Standard Name';
+            case 'subjects':
+                return 'Enter Subject Name';
+            case 'chapters':
+                return 'Enter Chapter Name';
+            default:
+                return 'Enter Name';
+        }
+    };
+
     return (
         <Modal
             visible={visible}
@@ -101,44 +124,48 @@ const ConfirmationModal = ({ visible, onClose, currentLevel, selectedStandard, s
             <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
                     <View style={styles.header}>
-                        <Image source={getIcon()} style={styles.headerIcon} />
-                        <Text style={styles.title}>Add New {currentLevel.slice(0, -1)}</Text>
+                        <Text style={styles.headerText}>{getTitle()}</Text>
+                        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                            <Image 
+                                source={require('../../assets/cancel.png')} 
+                                style={styles.closeIcon}
+                            />
+                        </TouchableOpacity>
                     </View>
 
                     <View style={styles.divider} />
 
-                    <Text style={styles.label}>{currentLevel.slice(0, -1).charAt(0).toUpperCase() + currentLevel.slice(0, -1).slice(1)} name</Text>
+                    <Text style={styles.label}>{getPlaceholder()}</Text>
                     <TextInput
                         ref={inputRef}
-                        style={styles.input}
-                        placeholder={`Enter ${currentLevel.slice(0, -1)} name`}
+                        style={[styles.input, isLoading && styles.disabledInput]}
+                        placeholder={getPlaceholder()}
                         placeholderTextColor={colors.text.light}
                         value={name}
                         onChangeText={setName}
                         returnKeyType="done"
                         onSubmitEditing={handleSubmit}
+                        editable={!isLoading}
                     />
 
                     <View style={styles.buttonContainer}>
                         <TouchableOpacity 
-                            style={[styles.button, styles.cancelButton]} 
+                            style={[styles.button, styles.cancelButton, isLoading && styles.disabledButton]} 
                             onPress={onClose}
+                            disabled={isLoading}
                         >
-                            <Image 
-                                source={require('../../assets/cancel.png')} 
-                                style={[styles.buttonIcon, styles.cancelIcon]} 
-                            />
                             <Text style={[styles.buttonText, styles.cancelButtonText]}>Cancel</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
-                            style={[styles.button, styles.submitButton]} 
+                            style={[styles.button, styles.submitButton, isLoading && styles.disabledButton]} 
                             onPress={handleSubmit}
+                            disabled={isLoading}
                         >
-                            <Image 
-                                source={require('../../assets/tick-inside-circle.png')} 
-                                style={[styles.buttonIcon, styles.submitIcon]} 
-                            />
-                            <Text style={[styles.buttonText, styles.submitButtonText]}>Submit</Text>
+                            {isLoading ? (
+                                <ActivityIndicator color={colors.text.white} size="small" />
+                            ) : (
+                                <Text style={[styles.buttonText, styles.submitButtonText]}>Add</Text>
+                            )}
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -169,17 +196,19 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: borderRadius.lg,
         borderTopRightRadius: borderRadius.lg,
     },
-    headerIcon: {
-        width: 24,
-        height: 24,
-        marginRight: spacing.sm,
-        tintColor: colors.primary,
-    },
-    title: {
+    headerText: {
         fontSize: 16,
         fontWeight: '600',
         color: colors.text.primary,
         flex: 1,
+    },
+    closeButton: {
+        padding: spacing.xs,
+    },
+    closeIcon: {
+        width: 20,
+        height: 20,
+        tintColor: colors.text.light,
     },
     divider: {
         height: 1,
@@ -204,6 +233,9 @@ const styles = StyleSheet.create({
         fontSize: 14,
         height: 40,
     },
+    disabledInput: {
+        opacity: 0.7,
+    },
     buttonContainer: {
         flexDirection: 'row',
         padding: spacing.md,
@@ -222,11 +254,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         height: 36,
     },
-    buttonIcon: {
-        width: 16,
-        height: 16,
-        marginRight: spacing.xs,
-    },
     cancelButton: {
         backgroundColor: colors.background.accent,
     },
@@ -243,11 +270,8 @@ const styles = StyleSheet.create({
     submitButtonText: {
         color: colors.text.white,
     },
-    cancelIcon: {
-        tintColor: colors.text.primary,
-    },
-    submitIcon: {
-        tintColor: colors.text.white,
+    disabledButton: {
+        opacity: 0.7,
     },
 });
 
