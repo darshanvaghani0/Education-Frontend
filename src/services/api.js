@@ -1,4 +1,4 @@
-export const BASE_URL = 'http://192.168.135.143:8000';
+export const BASE_URL = 'https://education-771144557380.us-central1.run.app';
 
 export const get = async (endpoint, params = {}) => {
   try {

@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.kck">
+    package="com.Edu">
 
      <uses-permission android:name="android.permission.INTERNET" />
     <!-- Gallery and Camera Permissions --> 
@@ -41,7 +41,7 @@
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.kck.provider"
+            android:authorities="com.Edu.provider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

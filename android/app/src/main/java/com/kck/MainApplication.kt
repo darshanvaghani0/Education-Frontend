@@ -1,4 +1,4 @@
-package com.kck
+package com.Edu
 
 import android.app.Application
 import com.facebook.react.PackageList
